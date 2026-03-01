@@ -1,5 +1,7 @@
 # fcc-ca-ads
 
+[![CI](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml)
+
 A CLI tool that extracts political ad filing data from FCC public inspection files (OPIF) for California TV stations. Broadcasters are required to publicly disclose political ad buys -- this tool automates downloading those filings and extracting structured data from them.
 
 ## What it does

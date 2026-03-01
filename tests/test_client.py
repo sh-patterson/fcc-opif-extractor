@@ -117,6 +117,35 @@ def test_file_history():
     assert result[0]["file_name"] == "ABC_PAC_Order_20260215"
 
 
+def test_rate_limiter_is_thread_safe():
+    """Rate limiter uses a lock — concurrent calls should not raise."""
+    import threading
+
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+
+    assert hasattr(client, "_rate_lock")
+    assert isinstance(client._rate_lock, type(threading.Lock()))
+
+    # Hammer _rate_limit from multiple threads to verify no race
+    errors = []
+
+    def call_rate_limit():
+        try:
+            for _ in range(20):
+                client._rate_limit()
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=call_rate_limit) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert errors == [], f"Race condition in rate limiter: {errors}"
+
+
 @responses.activate
 def test_file_history_empty():
     cfg = OpifConfig(rate_limit_delay=0.0)

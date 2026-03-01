@@ -1,5 +1,6 @@
 import logging
 import random
+import threading
 import time
 
 import requests
@@ -14,12 +15,14 @@ class OpifClient:
         self.config = config or OpifConfig()
         self.session = requests.Session()
         self._last_request_time = 0.0
+        self._rate_lock = threading.Lock()
 
     def _rate_limit(self):
-        elapsed = time.monotonic() - self._last_request_time
-        if elapsed < self.config.rate_limit_delay:
-            time.sleep(self.config.rate_limit_delay - elapsed)
-        self._last_request_time = time.monotonic()
+        with self._rate_lock:
+            elapsed = time.monotonic() - self._last_request_time
+            if elapsed < self.config.rate_limit_delay:
+                time.sleep(self.config.rate_limit_delay - elapsed)
+            self._last_request_time = time.monotonic()
 
     def _request(
         self, method: str, path: str, *, allow_redirects: bool = True, **kwargs
