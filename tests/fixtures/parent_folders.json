@@ -1,0 +1,24 @@
+{
+  "status": "success",
+  "results": {
+    "id": "root-folder-id",
+    "entityId": "25452",
+    "subFolders": [
+      {
+        "id": "15a4f0c2-d0f5-d2ce-b368-7e2b67ea8e84",
+        "folderName": "Political Files",
+        "subFolderCount": 5,
+        "fileCount": 0,
+        "createDate": "2024-01-15T10:00:00Z"
+      },
+      {
+        "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "folderName": "Letters and Emails from the Public",
+        "subFolderCount": 0,
+        "fileCount": 12,
+        "createDate": "2024-01-15T10:00:00Z"
+      }
+    ],
+    "files": []
+  }
+}

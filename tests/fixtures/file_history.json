@@ -1,0 +1,39 @@
+{
+  "status": "success",
+  "statusCode": 200,
+  "statusMessage": "File History Found",
+  "history": [
+    {
+      "file_id": "a68a37bf-2628-471c-a92d-4eaab57c81ec",
+      "file_name": "ABC_PAC_Order_20260215",
+      "file_extension": "pdf",
+      "file_size": 45678,
+      "history_status": "new",
+      "folder_id": "1f4d37ec-2ba7-0fa0-baa1-cc83e957469d",
+      "file_manager_id": "8cc05d5a-e4a1-493f-8a81-184728ff17a1",
+      "entity_id": "282",
+      "source_service_code": "TV",
+      "create_ts": "2026-02-15T14:30:00-05:00",
+      "last_update_ts": "2026-02-15T14:30:00-05:00",
+      "file_status": "com_prc",
+      "file_folder_path": "Political Files/2026/Federal",
+      "callsign": "KABC-TV"
+    },
+    {
+      "file_id": "b79b48cf-3739-582d-b03e-5fbb68fb92fd",
+      "file_name": "XYZ_Committee_Invoice_20260220",
+      "file_extension": "pdf",
+      "file_size": 32100,
+      "history_status": "new",
+      "folder_id": "1f4d37ec-2ba7-0fa0-baa1-cc83e957469d",
+      "file_manager_id": "9dd16e6b-f5b2-5a4a-9b92-295839aa03ae",
+      "entity_id": "282",
+      "source_service_code": "TV",
+      "create_ts": "2026-02-20T09:15:00-05:00",
+      "last_update_ts": "2026-02-20T09:15:00-05:00",
+      "file_status": "com_prc",
+      "file_folder_path": "Political Files/2026/Federal",
+      "callsign": "KABC-TV"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "results": {
+    "id": "1f4d37ec-2ba7-0fa0-baa1-cc83e957469d",
+    "folderName": "2026",
+    "entityId": "25452",
+    "subFolders": [
+      {
+        "id": "3a55b92b-7158-bfdd-507f-442bc6861a89",
+        "folderName": "Federal",
+        "subFolderCount": 0,
+        "fileCount": 2,
+        "createDate": "2026-01-10T08:00:00Z"
+      }
+    ],
+    "files": [
+      {
+        "id": "a68a37bf-2628-471c-a92d-4eaab57c81ec",
+        "fileName": "ABC_PAC_Order_20260215.pdf",
+        "fileExtension": "pdf",
+        "fileManagerId": "8cc05d5a-e4a1-493f-8a81-184728ff17a1",
+        "fileSize": 45678,
+        "status": "cpy",
+        "createDate": "2026-02-15T14:30:00Z",
+        "folder": {
+          "id": "1f4d37ec-2ba7-0fa0-baa1-cc83e957469d"
+        }
+      }
+    ]
+  }
+}

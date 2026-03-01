@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fcc-ca-ads"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+    "click>=8.1",
+    "pdfplumber>=0.10",
+]
+
+[project.optional-dependencies]
+ocr = ["ocrmypdf>=16.0"]
+dev = [
+    "pytest>=8.0",
+    "responses>=0.25",
+    "fpdf2>=2.7",
+    "ruff>=0.3",
+]
+
+[project.scripts]
+fcc-ca-ads = "fcc_ca_ads.cli:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

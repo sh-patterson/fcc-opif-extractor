@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# Testing / linting
+.pytest_cache/
+.ruff_cache/
+
+# Project data (downloaded PDFs and SQLite DB)
+data/raw/
+data/ads.db
+
+# Keep data/stations.json tracked (public FCC station seed data)
+
+# Worktrees
+.worktrees/

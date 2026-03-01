@@ -1,0 +1,85 @@
+{
+  "status": "OK",
+  "results": {
+    "searchList": [
+      {
+        "searchType": "State",
+        "facility": null,
+        "facilityList": [
+          {
+            "id": 25452,
+            "callSign": "KABC-TV",
+            "service": "Full Service",
+            "community": {
+              "city": "LOS ANGELES",
+              "state": "CA"
+            },
+            "nielsenDma": "LOS ANGELES",
+            "networkAffiliate": "ABC",
+            "activeInd": "Y"
+          },
+          {
+            "id": 35658,
+            "callSign": "KCBS-TV",
+            "service": "Full Service",
+            "community": {
+              "city": "LOS ANGELES",
+              "state": "CA"
+            },
+            "nielsenDma": "LOS ANGELES",
+            "networkAffiliate": "CBS",
+            "activeInd": "Y"
+          },
+          {
+            "id": 733,
+            "callSign": "KPIX-TV",
+            "service": "Full Service",
+            "community": {
+              "city": "SAN FRANCISCO",
+              "state": "CA"
+            },
+            "nielsenDma": "SAN FRANCISCO-OAK-SAN JOSE",
+            "networkAffiliate": "CBS",
+            "activeInd": "Y"
+          },
+          {
+            "id": 51991,
+            "callSign": "KXTV",
+            "service": "Full Service",
+            "community": {
+              "city": "SACRAMENTO",
+              "state": "CA"
+            },
+            "nielsenDma": "SACRAMNTO-STKTON-MODESTO",
+            "networkAffiliate": "ABC",
+            "activeInd": "Y"
+          },
+          {
+            "id": 99999,
+            "callSign": "KBAK-TV",
+            "service": "Full Service",
+            "community": {
+              "city": "BAKERSFIELD",
+              "state": "CA"
+            },
+            "nielsenDma": "BAKERSFIELD",
+            "networkAffiliate": "CBS",
+            "activeInd": "Y"
+          },
+          {
+            "id": 88888,
+            "callSign": "K99ZZ-LP",
+            "service": "Low Power",
+            "community": {
+              "city": "LOS ANGELES",
+              "state": "CA"
+            },
+            "nielsenDma": "LOS ANGELES",
+            "networkAffiliate": "",
+            "activeInd": "Y"
+          }
+        ]
+      }
+    ]
+  }
+}
