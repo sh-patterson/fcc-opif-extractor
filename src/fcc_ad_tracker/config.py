@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from pathlib import Path
 
-CA_TARGET_DMAS = [
+DEFAULT_TARGET_DMAS = [
     "LOS ANGELES",
     "SAN FRANCISCO-OAK-SAN JOSE",
     "SACRAMNTO-STKTON-MODESTO",
@@ -18,3 +19,5 @@ class OpifConfig:
     retry_jitter_max: float = 1.0
     request_timeout: float = 30.0
     retryable_status_codes: frozenset[int] = frozenset({408, 429, 500, 502, 503, 504})
+    cache_dir: Path | None = None
+    log_dir: Path | None = None

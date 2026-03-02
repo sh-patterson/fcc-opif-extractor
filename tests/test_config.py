@@ -1,4 +1,6 @@
-from fcc_ca_ads.config import OpifConfig, CA_TARGET_DMAS
+from pathlib import Path
+
+from fcc_ad_tracker.config import OpifConfig, DEFAULT_TARGET_DMAS
 
 
 def test_default_config():
@@ -19,6 +21,18 @@ def test_config_is_frozen():
 
 
 def test_ca_target_dmas():
-    assert "LOS ANGELES" in CA_TARGET_DMAS
-    assert "SACRAMNTO-STKTON-MODESTO" in CA_TARGET_DMAS
-    assert len(CA_TARGET_DMAS) == 4
+    assert "LOS ANGELES" in DEFAULT_TARGET_DMAS
+    assert "SACRAMNTO-STKTON-MODESTO" in DEFAULT_TARGET_DMAS
+    assert len(DEFAULT_TARGET_DMAS) == 4
+
+
+def test_cache_and_log_dirs_default_none():
+    cfg = OpifConfig()
+    assert cfg.cache_dir is None
+    assert cfg.log_dir is None
+
+
+def test_cache_and_log_dirs_accept_path():
+    cfg = OpifConfig(cache_dir=Path("/tmp/cache"), log_dir=Path("/tmp/logs"))
+    assert cfg.cache_dir == Path("/tmp/cache")
+    assert cfg.log_dir == Path("/tmp/logs")

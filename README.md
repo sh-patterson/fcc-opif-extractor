@@ -2,15 +2,81 @@
 
 [![CI](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml)
 
-A CLI tool that extracts political ad filing data from FCC public inspection files (OPIF) for California TV stations. Broadcasters are required to publicly disclose political ad buys -- this tool automates downloading those filings and extracting structured data from them.
+Extracts political ad spending data from FCC public inspection files. TV stations are required to disclose every political ad buy — who's buying, what they're paying, which shows, how many spots. This tool pulls those filings and turns them into structured, queryable data.
 
-## What it does
+## What questions can this answer?
 
-1. Discovers full-power TV stations in California's major DMAs via the FCC facility search API
-2. Downloads political file PDFs from each station's public file history
-3. Extracts text from PDFs using pdfplumber (with optional OCR fallback via ocrmypdf)
-4. Regex-extracts fields: advertiser, candidate, spend totals, and flight dates
-5. Stores everything in a local SQLite database for querying
+### Today
+
+**What is a candidate spending?**
+```bash
+fcc-ca-ads contracts --candidate "Steyer"
+# KABC-TV | 424082 | TOM STEYER FOR GOVERNOR 2026 | gross=$522,700 net=$444,295 spots=227
+
+fcc-ca-ads summary --candidate "Steyer" --by show
+# NBA LA Lakers | spots=1 | spend=$25,000 | rate=$25,000-$25,000
+# Good Morning America | spots=28 | spend=$84,000 | rate=$3,000-$3,000
+# 5A News | spots=14 | spend=$7,000 | rate=$500-$500
+```
+
+**What is being spent in a media market?**
+```bash
+fcc-ca-ads contracts --market "LOS ANGELES"
+fcc-ca-ads summary --station KABC-TV --by show
+```
+
+**Who is buying a specific show?**
+```bash
+fcc-ca-ads summary --show "American Idol"
+```
+
+### Not yet — needs a DMA-to-district crosswalk
+
+**What is being spent in a congressional district?**
+
+This is the hard problem. TV markets (DMAs) don't align to congressional districts. The LA DMA covers roughly 18 House districts. The Sacramento DMA bleeds into multiple districts that also touch other DMAs. A single ad buy on KABC reaches all of them.
+
+To answer district-level questions you need:
+1. A **DMA-to-district mapping** with population weights — what percentage of each district's population falls within each DMA
+2. **Spend allocation** — if a candidate spends $500K on LA TV, how much of that is "for" CA-27 vs. CA-34 vs. CA-40
+3. A view of whether the ad is actually targeting that district or just happens to reach it (a gubernatorial ad on LA TV isn't really "spending in CA-27")
+
+Nielsen publishes DMA-to-county mappings. Census data maps counties to congressional districts. Combining these would let us estimate district-level exposure, but it's an estimate — not a precise answer. The tool would need a `districts` table and a weighted crosswalk to make this work.
+
+## How it works
+
+1. **Discover** TV stations by state and DMA via the FCC facility search API
+2. **Download** political file PDFs, deduplicating by SHA-256 hash
+3. **Classify** each file as a contract, invoice, NAB form, or traffic order
+4. **Extract** structured data:
+   - Basic fields (advertiser, candidate, total, flight dates) — works broadly across filing formats
+   - Contract metadata (contract number, revision, agency, gross/commission/net totals) — works on structured contracts
+   - Per-spot line items (show, time slot, rate, spot count) — works on Strata/WideOrbit format contracts
+5. **Query** and **summarize** the results
+
+## What the data actually is
+
+These filings are required by [47 CFR 73.1943](https://www.law.cornell.edu/cfr/text/47/73.1943). They contain:
+- The actual negotiated rate for each spot (not list prices)
+- Which shows and dayparts the ads run in
+- Agency commissions (typically 15%)
+- Contract revisions — spots added, dropped, or rescheduled
+
+This is the same data available through each station's online public file at `publicfiles.fcc.gov`. No authentication required.
+
+## Scope
+
+**Works for any US state.** The FCC API is national. The tool defaults to California's four largest DMAs (Los Angeles, San Francisco, Sacramento, San Diego) but targeting other states is a config change — update `CA_TARGET_DMAS` in `config.py`.
+
+**Three tiers of extraction accuracy:**
+
+| What | Works on | Doesn't work on |
+|------|----------|-----------------|
+| Basic fields (advertiser, candidate, total, dates) | Most political filings | Badly scanned PDFs without OCR |
+| Contract metadata (contract #, agency, gross/net) | Structured contracts with labeled fields | Handwritten or non-standard formats |
+| Line items (per-spot show/rate/daypart) | Strata/WideOrbit format (`N <line#>` rows) | Other buying platform formats |
+
+**Not covered:** Radio stations, low-power/translator TV stations, reconciliation docs (what actually aired vs. ordered), invoice-specific fields.
 
 ## Requirements
 
@@ -26,100 +92,54 @@ pip install -e .
 pip install -e ".[ocr]"
 ```
 
-## Quick start
+## Usage
 
 ```bash
-# 1. Load station data into the database
-fcc-ca-ads load-stations
+# Setup
+fcc-ca-ads load-stations                          # load station data
+fcc-ca-ads discover --state CA                    # or discover from FCC API
 
-# 2. Download political file PDFs for a station
-fcc-ca-ads download --station KABC
+# Download
+fcc-ca-ads download --station KABC-TV             # one station
+fcc-ca-ads download --all                         # all stations in DB
+fcc-ca-ads download --all --since 2026-01-01      # date range
+fcc-ca-ads download --station KNBC-TV --dry-run   # preview without downloading
 
-# 3. Extract fields from downloaded PDFs
-fcc-ca-ads extract
+# Extract
+fcc-ca-ads extract                                # process all unextracted PDFs
 
-# 4. Query the extracted data
-fcc-ca-ads query --candidate "Smith"
+# Query
+fcc-ca-ads query --candidate "Garcia"             # search extractions
+fcc-ca-ads contracts --candidate "Steyer"         # contract-level totals
+fcc-ca-ads summary --candidate "Steyer"           # spend by station
+fcc-ca-ads summary --candidate "Steyer" --by show # spend by show
+fcc-ca-ads summary --station KABC-TV --by show    # all campaigns on a station
+
+# Export
+fcc-ca-ads contracts --format csv > contracts.csv
+fcc-ca-ads contracts --format json
+fcc-ca-ads query --format csv
 ```
 
-## CLI commands
+All commands support `--db PATH` to specify the database location (default: `data/ads.db`) and `-v` for debug logging.
 
-### `discover`
+## Database
 
-Discover TV stations from the FCC facility search API and save to a JSON file.
+Five tables in SQLite:
 
-```
-fcc-ca-ads discover [--state CA] [--output data/stations.json]
-```
+- **stations** — call sign, market/DMA, city, state
+- **files** — downloaded PDFs, SHA-256 hash, file type (contract/invoice/nab/traffic), OCR status
+- **extractions** — per-field results with confidence scores (high/medium/low)
+- **contracts** — contract number, revision, agency, gross/commission/net totals, demographic target
+- **line_items** — per-spot: show name, time slot, spot length, rate, rate type, spot count
 
-### `load-stations`
+## What would it take to add district-level analysis
 
-Load stations from a JSON seed file into the database.
+The gap between "what's being spent in a DMA" and "what's being spent in a congressional district" is a crosswalk table. Here's what that looks like:
 
-```
-fcc-ca-ads load-stations [--input data/stations.json]
-```
+1. **DMA-to-county mapping** — Nielsen publishes these annually. Each county belongs to exactly one DMA.
+2. **County-to-district mapping** — Census/redistricting data. Counties split across multiple districts need population weighting.
+3. **A `dma_districts` crosswalk table** — joining the two above, with a `weight` column representing the share of each district's population within each DMA.
+4. **A `--district` flag** on `summary` and `contracts` — that joins through the crosswalk and allocates spend proportionally.
 
-### `download`
-
-Download political file PDFs via the FCC file history API.
-
-```
-fcc-ca-ads download --station KABC
-fcc-ca-ads download --all
-fcc-ca-ads download --all --since 2025-06-01 --until 2025-12-31 --limit 50
-fcc-ca-ads download --station KNBC --dry-run
-```
-
-Options:
-- `--station` -- single station call sign
-- `--all` -- download for all stations in the database
-- `--since` -- start date (default: 2025-01-01)
-- `--until` -- end date (default: today)
-- `--limit` -- max files per station (default: 100)
-- `--dry-run` -- list files without downloading
-
-### `extract`
-
-Extract fields (advertiser, candidate, total spend, flight dates) from all downloaded PDFs that haven't been processed yet.
-
-```
-fcc-ca-ads extract
-```
-
-### `query`
-
-Query extracted ad data with optional filters.
-
-```
-fcc-ca-ads query --candidate "Garcia"
-fcc-ca-ads query --advertiser "Committee"
-fcc-ca-ads query --market "LOS ANGELES"
-fcc-ca-ads query --since 2025-06-01
-```
-
-### `status`
-
-Show database summary: station count, files downloaded, files extracted.
-
-```
-fcc-ca-ads status
-```
-
-### Global options
-
-- `--db PATH` -- SQLite database path (default: `data/ads.db`)
-- `-v` / `--verbose` -- enable debug logging
-
-## Data sources
-
-All data comes from the FCC's Online Public Inspection Files (OPIF) system at `publicfiles.fcc.gov`. This is the same public data available through each station's online public file. No authentication is required.
-
-The tool targets California's four largest DMAs: Los Angeles, San Francisco-Oakland-San Jose, Sacramento-Stockton-Modesto, and San Diego.
-
-## Limitations
-
-- **Extraction accuracy varies.** The regex-based field extraction works well on structured FCC contract forms but can miss or misparse less standardized filings. Confidence levels (high/medium/low) are assigned to each extraction.
-- **Totals are often per-spot, not contract-level.** Many filings report individual spot rates rather than a single contract total. Aggregating spend requires care.
-- **OCR fallback requires Tesseract.** Scanned PDFs without a text layer need `ocrmypdf` and Tesseract installed. Without them, scanned filings are skipped.
-- **California only.** The station discovery targets CA DMAs. Other states would require modifying the target DMA list in `config.py`.
+The hard part isn't the code — it's that the allocation is inherently imprecise. A $25,000 Lakers spot on KABC reaches all 18 districts in the LA DMA. Allocating $1,389 to each district by population share is mathematically defensible but editorially debatable. The right framing is probably "estimated ad exposure" rather than "ad spend in district X."

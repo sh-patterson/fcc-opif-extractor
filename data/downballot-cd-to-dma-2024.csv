@@ -1,0 +1,906 @@
+CD,Media market,State,Population,Percentage
+AK-AL,Anchorage,AK,"457,127",62.3%
+AK-AL,Fairbanks,AK,"104,082",14.2%
+AK-AL,Juneau,AK,"71,624",9.8%
+AK-AL,[None],AK,"100,558",13.7%
+AL-01,Dothan,AL,"253,798",35.4%
+AL-01,Mobile,AL,"426,386",59.4%
+AL-01,Montgomery,AL,"37,570",5.2%
+AL-02,Columbus,GA,"84,406",11.8%
+AL-02,Mobile,AL,"309,251",43.1%
+AL-02,Montgomery,AL,"324,097",45.2%
+AL-03,Atlanta,GA,"37,023",5.2%
+AL-03,Birmingham,AL,"430,407",60.0%
+AL-03,Columbus,GA,"209,013",29.1%
+AL-03,Montgomery,AL,"41,311",5.8%
+AL-04,Birmingham,AL,"368,616",51.4%
+AL-04,Columbus,MS,"13,972",1.9%
+AL-04,Huntsville,AL,"335,166",46.7%
+AL-05,Huntsville,AL,"717,754",100.0%
+AL-06,Birmingham,AL,"570,973",79.6%
+AL-06,Montgomery,AL,"146,782",20.4%
+AL-07,Birmingham,AL,"587,997",81.9%
+AL-07,Meridian,MS,"25,010",3.5%
+AL-07,Mobile,AL,"17,540",2.4%
+AL-07,Montgomery,AL,"87,207",12.2%
+AR-01,Jonesboro,AR,"223,577",29.7%
+AR-01,Little Rock,AR,"244,127",32.4%
+AR-01,Memphis,TN,"176,904",23.5%
+AR-01,Springfield,MO,"107,901",14.3%
+AR-02,Little Rock,AR,"752,710",100.0%
+AR-03,Ft. Smith,AR,"724,959",96.2%
+AR-03,Springfield,MO,"28,260",3.8%
+AR-04,Ft. Smith,AR,"83,511",11.1%
+AR-04,Little Rock,AR,"471,810",62.7%
+AR-04,Monroe,LA,"58,116",7.7%
+AR-04,Shreveport,LA,"132,424",17.6%
+AR-04,Springfield,MO,"7,225",1.0%
+AZ-01,Phoenix,AZ,"794,611",100.0%
+AZ-02,Albuquerque,NM,"66,021",8.3%
+AZ-02,Phoenix,AZ,"728,591",91.7%
+AZ-03,Phoenix,AZ,"794,612",100.0%
+AZ-04,Phoenix,AZ,"794,611",100.0%
+AZ-05,Phoenix,AZ,"794,612",100.0%
+AZ-06,Phoenix,AZ,"127,047",16.0%
+AZ-06,Tucson,AZ,"667,564",84.0%
+AZ-07,Phoenix,AZ,"120,743",15.2%
+AZ-07,Tucson,AZ,"548,985",69.1%
+AZ-07,Yuma,AZ,"124,883",15.7%
+AZ-08,Phoenix,AZ,"794,610",100.0%
+AZ-09,Phoenix,AZ,"715,614",90.1%
+AZ-09,Yuma,AZ,"78,998",9.9%
+CA-01,Chico,CA,"499,310",65.7%
+CA-01,Medford,OR,"44,207",5.8%
+CA-01,Reno,NV,"25,286",3.3%
+CA-01,Sacramento,CA,"191,263",25.2%
+CA-02,Chico,CA,"16,101",2.1%
+CA-02,Eureka,CA,"161,950",21.3%
+CA-02,San Francisco,CA,"582,016",76.6%
+CA-03,Los Angeles,CA,"18,963",2.5%
+CA-03,Reno,NV,"14,424",1.9%
+CA-03,Sacramento,CA,"726,678",95.6%
+CA-04,Sacramento,CA,"162,692",21.4%
+CA-04,San Francisco,CA,"597,373",78.6%
+CA-05,Fresno,CA,"170,197",22.4%
+CA-05,Sacramento,CA,"589,868",77.6%
+CA-06,Sacramento,CA,"760,066",100.0%
+CA-07,Sacramento,CA,"759,821",100.0%
+CA-07,San Francisco,CA,245,0.0%
+CA-08,San Francisco,CA,"760,065",100.0%
+CA-09,Sacramento,CA,"742,426",97.7%
+CA-09,San Francisco,CA,"17,640",2.3%
+CA-10,San Francisco,CA,"760,066",100.0%
+CA-11,San Francisco,CA,"760,067",100.0%
+CA-12,San Francisco,CA,"760,065",100.0%
+CA-13,Fresno,CA,"498,176",65.5%
+CA-13,Sacramento,CA,"261,889",34.5%
+CA-14,San Francisco,CA,"760,065",100.0%
+CA-15,San Francisco,CA,"760,066",100.0%
+CA-16,San Francisco,CA,"760,067",100.0%
+CA-17,San Francisco,CA,"760,066",100.0%
+CA-18,Monterey,CA,"397,407",52.3%
+CA-18,San Francisco,CA,"362,658",47.7%
+CA-19,Monterey,CA,"372,943",49.1%
+CA-19,San Francisco,CA,"286,076",37.6%
+CA-19,Santa Barbara,CA,"101,048",13.3%
+CA-20,Bakersfield,CA,"384,240",50.6%
+CA-20,Fresno,CA,"375,827",49.4%
+CA-21,Fresno,CA,"760,065",100.0%
+CA-22,Bakersfield,CA,"491,122",64.6%
+CA-22,Fresno,CA,"268,945",35.4%
+CA-23,Bakersfield,CA,"17,312",2.3%
+CA-23,Los Angeles,CA,"742,754",97.7%
+CA-24,Los Angeles,CA,"135,194",17.8%
+CA-24,Santa Barbara,CA,"624,872",82.2%
+CA-25,Los Angeles,CA,"586,440",77.2%
+CA-25,Yuma,AZ,"173,626",22.8%
+CA-26,Los Angeles,CA,"760,067",100.0%
+CA-27,Los Angeles,CA,"760,067",100.0%
+CA-28,Los Angeles,CA,"760,066",100.0%
+CA-29,Los Angeles,CA,"760,066",100.0%
+CA-30,Los Angeles,CA,"760,066",100.0%
+CA-31,Los Angeles,CA,"760,066",100.0%
+CA-32,Los Angeles,CA,"760,067",100.0%
+CA-33,Los Angeles,CA,"760,067",100.0%
+CA-34,Los Angeles,CA,"760,067",100.0%
+CA-35,Los Angeles,CA,"760,067",100.0%
+CA-36,Los Angeles,CA,"760,066",100.0%
+CA-37,Los Angeles,CA,"760,066",100.0%
+CA-38,Los Angeles,CA,"760,065",100.0%
+CA-39,Los Angeles,CA,"760,067",100.0%
+CA-40,Los Angeles,CA,"760,066",100.0%
+CA-41,Los Angeles,CA,"760,067",100.0%
+CA-42,Los Angeles,CA,"760,066",100.0%
+CA-43,Los Angeles,CA,"760,067",100.0%
+CA-44,Los Angeles,CA,"760,065",100.0%
+CA-45,Los Angeles,CA,"760,067",100.0%
+CA-46,Los Angeles,CA,"760,067",100.0%
+CA-47,Los Angeles,CA,"760,066",100.0%
+CA-48,Los Angeles,CA,"257,329",33.9%
+CA-48,San Diego,CA,"502,736",66.1%
+CA-49,Los Angeles,CA,"240,738",31.7%
+CA-49,San Diego,CA,"519,328",68.3%
+CA-50,San Diego,CA,"760,067",100.0%
+CA-51,San Diego,CA,"760,065",100.0%
+CA-52,San Diego,CA,"760,066",100.0%
+CO-01,Denver,CO,"721,714",100.0%
+CO-02,Denver,CO,"721,714",100.0%
+CO-03,Albuquerque,NM,"81,487",11.3%
+CO-03,Colorado Springs,CO,"208,227",28.9%
+CO-03,Denver,CO,"233,618",32.4%
+CO-03,Grand Junction,CO,"198,382",27.5%
+CO-04,Colorado Springs,CO,"24,583",3.4%
+CO-04,Denver,CO,"697,132",96.6%
+CO-05,Colorado Springs,CO,"721,714",100.0%
+CO-06,Denver,CO,"721,715",100.0%
+CO-07,Colorado Springs,CO,"78,975",10.9%
+CO-07,Denver,CO,"642,739",89.1%
+CO-08,Denver,CO,"721,714",100.0%
+CT-01,Hartford,CT,"721,189",100.0%
+CT-02,Hartford,CT,"721,188",100.0%
+CT-03,Hartford,CT,"640,936",88.9%
+CT-03,New York,NY,"80,253",11.1%
+CT-04,Hartford,CT,"12,706",1.8%
+CT-04,New York,NY,"708,483",98.2%
+CT-05,Hartford,CT,"552,506",76.6%
+CT-05,New York,NY,"168,683",23.4%
+DC-AL,Washington,DC,"689,545",100.0%
+DE-AL,Philadelphia,PA,"752,570",76.0%
+DE-AL,Salisbury,MD,"237,378",24.0%
+FL-01,Mobile,AL,"721,573",93.8%
+FL-01,Panama City,FL,"47,648",6.2%
+FL-02,Panama City,FL,"343,428",44.6%
+FL-02,Tallahassee,FL,"425,793",55.4%
+FL-03,Gainesville,FL,"356,006",46.3%
+FL-03,Jacksonville,FL,"142,407",18.5%
+FL-03,Orlando,FL,"206,835",26.9%
+FL-03,Tallahassee,FL,"63,973",8.3%
+FL-04,Jacksonville,FL,"769,221",100.0%
+FL-05,Jacksonville,FL,"769,221",100.0%
+FL-06,Jacksonville,FL,"112,468",14.6%
+FL-06,Orlando,FL,"656,753",85.4%
+FL-07,Orlando,FL,"769,221",100.0%
+FL-08,Orlando,FL,"609,433",79.2%
+FL-08,West Palm Beach,FL,"159,788",20.8%
+FL-09,Orlando,FL,"715,351",93.0%
+FL-09,Tampa,FL,"53,870",7.0%
+FL-10,Orlando,FL,"769,221",100.0%
+FL-11,Orlando,FL,"727,755",94.6%
+FL-11,Tampa,FL,"41,466",5.4%
+FL-12,Tampa,FL,"769,221",100.0%
+FL-13,Tampa,FL,"769,221",100.0%
+FL-14,Tampa,FL,"769,221",100.0%
+FL-15,Tampa,FL,"769,221",100.0%
+FL-16,Tampa,FL,"769,221",100.0%
+FL-17,Ft. Myers,FL,"335,215",43.6%
+FL-17,Tampa,FL,"434,006",56.4%
+FL-18,Ft. Myers,FL,"90,582",11.8%
+FL-18,Tampa,FL,"638,995",83.1%
+FL-18,West Palm Beach,FL,"39,644",5.2%
+FL-19,Ft. Myers,FL,"769,221",100.0%
+FL-20,Miami,FL,"535,322",69.6%
+FL-20,West Palm Beach,FL,"233,899",30.4%
+FL-21,West Palm Beach,FL,"769,221",100.0%
+FL-22,West Palm Beach,FL,"769,220",100.0%
+FL-23,Miami,FL,"561,713",73.0%
+FL-23,West Palm Beach,FL,"207,508",27.0%
+FL-24,Miami,FL,"769,221",100.0%
+FL-25,Miami,FL,"769,221",100.0%
+FL-26,Ft. Myers,FL,"214,124",27.8%
+FL-26,Miami,FL,"555,097",72.2%
+FL-27,Miami,FL,"769,221",100.0%
+FL-28,Miami,FL,"769,221",100.0%
+GA-01,Jacksonville,FL,"225,773",29.5%
+GA-01,Savannah,GA,"539,364",70.5%
+GA-02,Albany,GA,"158,342",20.7%
+GA-02,Columbus,GA,"251,284",32.8%
+GA-02,Dothan,AL,"10,854",1.4%
+GA-02,Macon,GA,"228,109",29.8%
+GA-02,Tallahassee,FL,"116,548",15.2%
+GA-03,Atlanta,GA,"698,701",91.3%
+GA-03,Columbus,GA,"66,435",8.7%
+GA-04,Atlanta,GA,"765,137",100.0%
+GA-05,Atlanta,GA,"765,137",100.0%
+GA-06,Atlanta,GA,"765,136",100.0%
+GA-07,Atlanta,GA,"765,137",100.0%
+GA-08,Albany,GA,"250,787",32.8%
+GA-08,Macon,GA,"344,695",45.1%
+GA-08,Savannah,GA,"14,779",1.9%
+GA-08,Tallahassee,FL,"154,875",20.2%
+GA-09,Atlanta,GA,"738,351",96.5%
+GA-09,Greenville,SC,"26,784",3.5%
+GA-10,Atlanta,GA,"684,152",89.4%
+GA-10,Augusta,GA,"3,361",0.4%
+GA-10,Greenville,SC,"68,889",9.0%
+GA-10,Macon,GA,"8,735",1.1%
+GA-11,Atlanta,GA,"765,135",100.0%
+GA-12,Augusta,GA,"479,548",62.7%
+GA-12,Macon,GA,"92,624",12.1%
+GA-12,Savannah,GA,"192,964",25.2%
+GA-13,Atlanta,GA,"765,136",100.0%
+GA-14,Atlanta,GA,"470,522",61.5%
+GA-14,Chattanooga,TN,"294,614",38.5%
+HI-01,Honolulu,HI,"726,395",100.0%
+HI-02,Honolulu,HI,"728,876",100.0%
+IA-01,Cedar Rapids,IA,"241,265",30.2%
+IA-01,Davenport,IA,"354,078",44.4%
+IA-01,Des Moines,IA,"145,820",18.3%
+IA-01,Ottumwa,IA,"22,866",2.9%
+IA-01,Quincy,IL,"33,555",4.2%
+IA-02,Cedar Rapids,IA,"675,818",84.7%
+IA-02,Des Moines,IA,"35,540",4.5%
+IA-02,Rochester,MN,"86,231",10.8%
+IA-03,Des Moines,IA,"714,336",89.6%
+IA-03,Omaha,NE,"38,668",4.8%
+IA-03,Ottumwa,IA,"44,547",5.6%
+IA-04,Des Moines,IA,"308,221",38.6%
+IA-04,Omaha,NE,"157,609",19.8%
+IA-04,Rochester,MN,"21,474",2.7%
+IA-04,Sioux City,IA,"292,215",36.6%
+IA-04,Sioux Falls,SD,"18,126",2.3%
+ID-01,Boise,ID,"555,911",60.5%
+ID-01,Spokane,WA,"363,642",39.5%
+ID-02,Boise,ID,"290,561",31.6%
+ID-02,Idaho Falls,ID,"398,314",43.3%
+ID-02,Salt Lake City,UT,"25,130",2.7%
+ID-02,Twin Falls,ID,"205,548",22.4%
+IL-01,Chicago,IL,"753,677",100.0%
+IL-02,Champaign,IL,"119,284",15.8%
+IL-02,Chicago,IL,"606,447",80.5%
+IL-02,Peoria,IL,"27,946",3.7%
+IL-03,Chicago,IL,"753,677",100.0%
+IL-04,Chicago,IL,"753,677",100.0%
+IL-05,Chicago,IL,"753,677",100.0%
+IL-06,Chicago,IL,"753,677",100.0%
+IL-07,Chicago,IL,"753,677",100.0%
+IL-08,Chicago,IL,"753,677",100.0%
+IL-09,Chicago,IL,"753,677",100.0%
+IL-10,Chicago,IL,"753,677",100.0%
+IL-11,Chicago,IL,"727,231",96.5%
+IL-11,Rockford,IL,"26,446",3.5%
+IL-12,Champaign,IL,"56,313",7.5%
+IL-12,Evansville,IN,"47,662",6.3%
+IL-12,Paducah,KY,"315,262",41.8%
+IL-12,St. Louis,MO,"259,926",34.5%
+IL-12,Terre Haute,IN,"74,514",9.9%
+IL-13,Champaign,IL,"362,335",48.1%
+IL-13,St. Louis,MO,"391,342",51.9%
+IL-14,Chicago,IL,"737,677",97.9%
+IL-14,Davenport,IA,"12,276",1.6%
+IL-14,Peoria,IL,"3,724",0.5%
+IL-15,Champaign,IL,"396,433",52.6%
+IL-15,Davenport,IA,"19,650",2.6%
+IL-15,Peoria,IL,"20,506",2.7%
+IL-15,Quincy,IL,"128,893",17.1%
+IL-15,St. Louis,MO,"188,195",25.0%
+IL-16,Champaign,IL,"3,205",0.4%
+IL-16,Chicago,IL,"93,400",12.4%
+IL-16,Davenport,IA,"69,908",9.3%
+IL-16,Peoria,IL,"330,996",43.9%
+IL-16,Rockford,IL,"256,168",34.0%
+IL-17,Davenport,IA,"307,682",40.8%
+IL-17,Peoria,IL,"244,711",32.5%
+IL-17,Quincy,IL,"14,536",1.9%
+IL-17,Rockford,IL,"186,747",24.8%
+IN-01,Chicago,IL,"753,947",100.0%
+IN-02,Chicago,IL,"30,385",4.0%
+IN-02,Ft. Wayne,IN,"30,976",4.1%
+IN-02,Indianapolis,IN,"48,201",6.4%
+IN-02,South Bend,IN,"644,385",85.5%
+IN-03,Ft. Wayne,IN,"665,887",88.3%
+IN-03,Indianapolis,IN,"29,340",3.9%
+IN-03,South Bend,IN,"58,720",7.8%
+IN-04,Chicago,IL,"46,748",6.2%
+IN-04,Indianapolis,IN,"512,229",67.9%
+IN-04,Lafayette,IN,"194,970",25.9%
+IN-05,Indianapolis,IN,"753,947",100.0%
+IN-06,Cincinnati,OH,"7,087",0.9%
+IN-06,Indianapolis,IN,"746,862",99.1%
+IN-07,Indianapolis,IN,"753,949",100.0%
+IN-08,Evansville,IN,"397,134",52.7%
+IN-08,Indianapolis,IN,"31,111",4.1%
+IN-08,Louisville,KY,"30,393",4.0%
+IN-08,Terre Haute,IN,"295,309",39.2%
+IN-09,Cincinnati,OH,"118,136",15.7%
+IN-09,Indianapolis,IN,"234,827",31.1%
+IN-09,Louisville,KY,"400,985",53.2%
+KS-01,Kansas City,MO,"95,921",13.1%
+KS-01,Lincoln,NE,"8,244",1.1%
+KS-01,Topeka,KS,"160,934",21.9%
+KS-01,Wichita,KS,"469,371",63.9%
+KS-02,Joplin,MO,"133,047",18.1%
+KS-02,Kansas City,MO,"243,345",33.1%
+KS-02,St. Joseph,MO,"7,510",1.0%
+KS-02,Topeka,KS,"304,687",41.5%
+KS-02,Tulsa,OK,"31,486",4.3%
+KS-02,Wichita,KS,"14,395",2.0%
+KS-03,Kansas City,MO,"734,470",100.0%
+KS-04,Tulsa,OK,"3,379",0.5%
+KS-04,Wichita,KS,"731,091",99.5%
+KY-01,Bowling Green,KY,"10,286",1.4%
+KY-01,Evansville,IN,"116,901",15.6%
+KY-01,Lexington,KY,"120,429",16.0%
+KY-01,Louisville,KY,"76,534",10.2%
+KY-01,Nashville,TN,"190,740",25.4%
+KY-01,Paducah,KY,"236,083",31.4%
+KY-02,Bowling Green,KY,"222,824",29.7%
+KY-02,Evansville,IN,"176,259",23.5%
+KY-02,Louisville,KY,"349,484",46.5%
+KY-02,Nashville,TN,"2,405",0.3%
+KY-03,Louisville,KY,"750,973",100.0%
+KY-04,Charleston,WV,"51,785",6.9%
+KY-04,Cincinnati,OH,"485,374",64.6%
+KY-04,Lexington,KY,"18,692",2.5%
+KY-04,Louisville,KY,"195,122",26.0%
+KY-05,Charleston,WV,"224,370",29.9%
+KY-05,Knoxville,TN,"67,816",9.0%
+KY-05,Lexington,KY,"426,726",56.8%
+KY-05,Tri-Cities,TN,"32,061",4.3%
+KY-06,Lexington,KY,"750,972",100.0%
+LA-01,Baton Rouge,LA,"41,028",5.3%
+LA-01,New Orleans,LA,"735,299",94.7%
+LA-02,Baton Rouge,LA,"118,289",15.2%
+LA-02,New Orleans,LA,"658,027",84.8%
+LA-03,Baton Rouge,LA,"49,406",6.4%
+LA-03,Lafayette,LA,"449,292",57.9%
+LA-03,Lake Charles,LA,"136,916",17.6%
+LA-03,New Orleans,LA,"140,673",18.1%
+LA-04,Alexandria,LA,"95,638",12.3%
+LA-04,Lafayette,LA,"32,350",4.2%
+LA-04,Lake Charles,LA,"144,785",18.7%
+LA-04,Monroe,LA,"153,662",19.8%
+LA-04,Shreveport,LA,"349,867",45.1%
+LA-05,Alexandria,LA,"20,125",2.6%
+LA-05,Baton Rouge,LA,"378,713",48.8%
+LA-05,Monroe,LA,"253,844",32.7%
+LA-05,New Orleans,LA,"123,603",15.9%
+LA-06,Alexandria,LA,"124,872",16.1%
+LA-06,Baton Rouge,LA,"332,539",42.8%
+LA-06,Lafayette,LA,"143,882",18.5%
+LA-06,Shreveport,LA,"174,947",22.5%
+MA-01,Albany,NY,"129,026",16.5%
+MA-01,Boston,MA,"106,927",13.7%
+MA-01,Springfield,MA,"545,150",69.8%
+MA-02,Boston,MA,"627,089",80.3%
+MA-02,Springfield,MA,"154,012",19.7%
+MA-03,Boston,MA,"781,102",100.0%
+MA-04,Boston,MA,"410,864",52.6%
+MA-04,Providence,RI,"370,239",47.4%
+MA-05,Boston,MA,"781,101",100.0%
+MA-06,Boston,MA,"781,101",100.0%
+MA-07,Boston,MA,"781,102",100.0%
+MA-08,Boston,MA,"756,044",96.8%
+MA-08,Providence,RI,"25,058",3.2%
+MA-09,Boston,MA,"597,199",76.5%
+MA-09,Providence,RI,"183,903",23.5%
+MD-01,Baltimore,MD,"560,564",72.6%
+MD-01,Salisbury,MD,"211,361",27.4%
+MD-02,Baltimore,MD,"771,926",100.0%
+MD-03,Baltimore,MD,"771,925",100.0%
+MD-04,Washington,DC,"771,925",100.0%
+MD-05,Baltimore,MD,"165,300",21.4%
+MD-05,Washington,DC,"606,624",78.6%
+MD-06,Pittsburgh,PA,"28,846",3.7%
+MD-06,Washington,DC,"743,080",96.3%
+MD-07,Baltimore,MD,"771,926",100.0%
+MD-08,Washington,DC,"771,926",100.0%
+ME-01,Portland,ME,"681,179",100.0%
+ME-02,Bangor,ME,"345,656",50.7%
+ME-02,Portland,ME,"268,419",39.4%
+ME-02,Presque Isle,ME,"67,105",9.9%
+MI-01,Alpena,MI,"39,074",5.0%
+MI-01,Duluth,MN,"14,380",1.9%
+MI-01,Flint,MI,"61,009",7.9%
+MI-01,Green Bay,WI,"23,502",3.0%
+MI-01,Marquette,MI,"210,768",27.2%
+MI-01,Traverse City,MI,"426,642",55.0%
+MI-02,Flint,MI,"141,192",18.2%
+MI-02,Grand Rapids,MI,"439,821",56.8%
+MI-02,Lansing,MI,"4,786",0.6%
+MI-02,Traverse City,MI,"189,198",24.4%
+MI-03,Grand Rapids,MI,"775,414",100.0%
+MI-04,Grand Rapids,MI,"715,398",92.4%
+MI-04,South Bend,IN,"59,202",7.6%
+MI-05,Detroit,MI,"152,593",19.7%
+MI-05,Grand Rapids,MI,"169,713",21.9%
+MI-05,Lansing,MI,"206,112",26.6%
+MI-05,South Bend,IN,"146,703",18.9%
+MI-05,Toledo,OH,"99,423",12.8%
+MI-06,Detroit,MI,"775,273",100.0%
+MI-07,Detroit,MI,"238,524",30.8%
+MI-07,Flint,MI,"68,297",8.8%
+MI-07,Lansing,MI,"468,417",60.4%
+MI-08,Flint,MI,"775,229",100.0%
+MI-09,Detroit,MI,"691,630",89.2%
+MI-09,Flint,MI,"83,332",10.8%
+MI-10,Detroit,MI,"775,218",100.0%
+MI-11,Detroit,MI,"775,568",100.0%
+MI-12,Detroit,MI,"775,247",100.0%
+MI-13,Detroit,MI,"775,666",100.0%
+MN-01,La Crosse,WI,"68,514",9.6%
+MN-01,Mankato,MN,"122,389",17.2%
+MN-01,Minneapolis,MN,"214,548",30.1%
+MN-01,Rochester,MN,"275,866",38.7%
+MN-01,Sioux Falls,SD,"31,994",4.5%
+MN-02,Minneapolis,MN,"713,312",100.0%
+MN-03,Minneapolis,MN,"713,311",100.0%
+MN-04,Minneapolis,MN,"713,312",100.0%
+MN-05,Minneapolis,MN,"713,312",100.0%
+MN-06,Minneapolis,MN,"713,312",100.0%
+MN-07,Fargo,ND,"247,231",34.7%
+MN-07,Mankato,MN,"3,913",0.5%
+MN-07,Minneapolis,MN,"438,925",61.5%
+MN-07,Sioux Falls,SD,"23,243",3.3%
+MN-08,Duluth,MN,"310,019",43.5%
+MN-08,Fargo,ND,"21,693",3.0%
+MN-08,Minneapolis,MN,"381,600",53.5%
+MO-01,St. Louis,MO,"769,364",100.0%
+MO-02,St. Louis,MO,"769,364",100.0%
+MO-03,Columbia,MO,"315,432",41.0%
+MO-03,Springfield,MO,"11,897",1.5%
+MO-03,St. Louis,MO,"442,035",57.5%
+MO-04,Columbia,MO,"111,223",14.5%
+MO-04,Joplin,MO,"31,344",4.1%
+MO-04,Kansas City,MO,"376,785",49.0%
+MO-04,Springfield,MO,"250,012",32.5%
+MO-05,Kansas City,MO,"769,364",100.0%
+MO-06,Columbia,MO,"57,086",7.4%
+MO-06,Kansas City,MO,"381,845",49.6%
+MO-06,Omaha,NE,"5,305",0.7%
+MO-06,Ottumwa,IA,"55,235",7.2%
+MO-06,Quincy,IL,"78,775",10.2%
+MO-06,St. Joseph,MO,"113,957",14.8%
+MO-06,St. Louis,MO,"77,161",10.0%
+MO-07,Joplin,MO,"204,712",26.6%
+MO-07,Springfield,MO,"564,653",73.4%
+MO-08,Memphis,TN,"15,661",2.0%
+MO-08,Paducah,KY,"322,965",42.0%
+MO-08,Springfield,MO,"132,643",17.2%
+MO-08,St. Louis,MO,"298,095",38.7%
+MS-01,Columbus,MS,"373,175",50.4%
+MS-01,Memphis,TN,"367,144",49.6%
+MS-02,Baton Rouge,LA,"21,307",2.9%
+MS-02,Columbus,MS,"22,303",3.0%
+MS-02,Greenwood,MS,"174,559",23.6%
+MS-02,Jackson,MS,"451,594",61.0%
+MS-02,Memphis,TN,"70,556",9.5%
+MS-03,Columbus,MS,"76,876",10.4%
+MS-03,Hattiesburg,MS,"70,027",9.5%
+MS-03,Jackson,MS,"445,452",60.2%
+MS-03,Meridian,MS,"147,965",20.0%
+MS-04,Biloxi,MS,"370,206",50.0%
+MS-04,Hattiesburg,MS,"230,037",31.1%
+MS-04,Mobile,AL,"37,880",5.1%
+MS-04,New Orleans,LA,"102,198",13.8%
+MT-01,Butte,MT,"188,454",34.8%
+MT-01,Great Falls,MT,"16,150",3.0%
+MT-01,Missoula,MT,"317,831",58.6%
+MT-01,Spokane,WA,"19,677",3.6%
+MT-02,Billings,MT,"252,030",46.5%
+MT-02,Butte,MT,"12,085",2.2%
+MT-02,Glendive,MT,"10,028",1.8%
+MT-02,Great Falls,MT,"155,608",28.7%
+MT-02,Helena,MT,"77,747",14.3%
+MT-02,Minot,ND,"33,200",6.1%
+MT-02,Rapid City,SD,"1,415",0.3%
+NC-01,Greenville,NC,"129,786",17.4%
+NC-01,Norfolk,VA,"137,766",18.5%
+NC-01,Raleigh,NC,"478,118",64.1%
+NC-02,Raleigh,NC,"745,670",100.0%
+NC-03,Greenville,NC,"662,629",88.9%
+NC-03,Norfolk,VA,"36,915",5.0%
+NC-03,Raleigh,NC,"46,127",6.2%
+NC-04,Raleigh,NC,"745,671",100.0%
+NC-05,Charlotte,NC,"197,759",26.5%
+NC-05,Greensboro,NC,"547,912",73.5%
+NC-06,Charlotte,NC,"248,133",33.3%
+NC-06,Greensboro,NC,"497,538",66.7%
+NC-07,Myrtle Beach,SC,"38,268",5.1%
+NC-07,Raleigh,NC,"204,576",27.4%
+NC-07,Wilmington,NC,"502,827",67.4%
+NC-08,Charlotte,NC,"607,484",81.5%
+NC-08,Greensboro,NC,"25,751",3.5%
+NC-08,Myrtle Beach,SC,"112,436",15.1%
+NC-09,Greensboro,NC,"415,156",55.7%
+NC-09,Raleigh,NC,"330,515",44.3%
+NC-10,Charlotte,NC,"434,113",58.2%
+NC-10,Greensboro,NC,"311,557",41.8%
+NC-11,Atlanta,GA,"11,089",1.5%
+NC-11,Charlotte,NC,"17,806",2.4%
+NC-11,Chattanooga,TN,"28,774",3.9%
+NC-11,Greenville,SC,"688,001",92.3%
+NC-12,Charlotte,NC,"745,670",100.0%
+NC-13,Greensboro,NC,"22,736",3.0%
+NC-13,Raleigh,NC,"722,934",97.0%
+NC-14,Charlotte,NC,"667,678",89.5%
+NC-14,Greenville,SC,"77,993",10.5%
+ND-AL,Fargo,ND,"387,029",49.7%
+ND-AL,Minot,ND,"392,065",50.3%
+NE-01,Lincoln,NE,"351,178",53.7%
+NE-01,Omaha,NE,"261,217",40.0%
+NE-01,Sioux City,IA,"41,427",6.3%
+NE-02,Omaha,NE,"653,847",100.0%
+NE-03,Cheyenne,WY,"36,084",5.5%
+NE-03,Denver,CO,"58,891",9.0%
+NE-03,Lincoln,NE,"385,465",59.0%
+NE-03,North Platte,NE,"36,460",5.6%
+NE-03,Omaha,NE,"63,734",9.7%
+NE-03,Sioux City,IA,"67,746",10.4%
+NE-03,Sioux Falls,SD,"5,455",0.8%
+NH-01,Boston,MA,"641,910",93.2%
+NH-01,Portland,ME,"46,854",6.8%
+NH-02,Boston,MA,"520,063",75.5%
+NH-02,Burlington,VT,"134,181",19.5%
+NH-02,Portland,ME,"34,521",5.0%
+NJ-01,Philadelphia,PA,"773,585",100.0%
+NJ-02,New York,NY,"108,915",14.1%
+NJ-02,Philadelphia,PA,"664,669",85.9%
+NJ-03,New York,NY,"166,877",21.6%
+NJ-03,Philadelphia,PA,"606,709",78.4%
+NJ-04,New York,NY,"773,586",100.0%
+NJ-05,New York,NY,"773,585",100.0%
+NJ-06,New York,NY,"773,586",100.0%
+NJ-07,New York,NY,"773,584",100.0%
+NJ-08,New York,NY,"773,584",100.0%
+NJ-09,New York,NY,"773,584",100.0%
+NJ-10,New York,NY,"773,584",100.0%
+NJ-11,New York,NY,"773,584",100.0%
+NJ-12,New York,NY,"564,882",73.0%
+NJ-12,Philadelphia,PA,"208,702",27.0%
+NM-01,Albuquerque,NM,"705,832",100.0%
+NM-02,Albuquerque,NM,"486,285",68.9%
+NM-02,El Paso,TX,"219,561",31.1%
+NM-03,Albuquerque,NM,"625,398",88.6%
+NM-03,Amarillo,TX,"80,446",11.4%
+NV-01,Las Vegas,NV,"776,153",100.0%
+NV-02,Las Vegas,NV,9,0.0%
+NV-02,Reno,NV,"714,043",92.0%
+NV-02,Salt Lake City,UT,"62,102",8.0%
+NV-03,Las Vegas,NV,"776,153",100.0%
+NV-04,Las Vegas,NV,"770,491",99.3%
+NV-04,Los Angeles,CA,729,0.1%
+NV-04,Reno,NV,"4,934",0.6%
+NY-01,New York,NY,"776,971",100.0%
+NY-02,New York,NY,"776,971",100.0%
+NY-03,New York,NY,"776,971",100.0%
+NY-04,New York,NY,"776,971",100.0%
+NY-05,New York,NY,"776,971",100.0%
+NY-06,New York,NY,"776,971",100.0%
+NY-07,New York,NY,"776,971",100.0%
+NY-08,New York,NY,"776,972",100.0%
+NY-09,New York,NY,"776,972",100.0%
+NY-10,New York,NY,"776,971",100.0%
+NY-11,New York,NY,"776,971",100.0%
+NY-12,New York,NY,"776,971",100.0%
+NY-13,New York,NY,"776,971",100.0%
+NY-14,New York,NY,"776,972",100.0%
+NY-15,New York,NY,"776,971",100.0%
+NY-16,New York,NY,"776,971",100.0%
+NY-17,New York,NY,"776,971",100.0%
+NY-18,New York,NY,"776,971",100.0%
+NY-19,Albany,NY,"173,731",22.4%
+NY-19,Binghamton,NY,"290,211",37.4%
+NY-19,New York,NY,"138,553",17.8%
+NY-19,Syracuse,NY,"115,952",14.9%
+NY-19,Utica,NY,"58,524",7.5%
+NY-20,Albany,NY,"776,971",100.0%
+NY-21,Albany,NY,"293,063",37.7%
+NY-21,Burlington,VT,"164,779",21.2%
+NY-21,Utica,NY,"149,372",19.2%
+NY-21,Watertown,NY,"169,757",21.8%
+NY-22,Syracuse,NY,"634,079",81.6%
+NY-22,Utica,NY,"142,892",18.4%
+NY-23,Binghamton,NY,"48,455",6.2%
+NY-23,Buffalo,NY,"555,340",71.5%
+NY-23,Elmira,NY,"173,176",22.3%
+NY-24,Buffalo,NY,"184,655",23.8%
+NY-24,Elmira,NY,"22,454",2.9%
+NY-24,Rochester,NY,"313,164",40.3%
+NY-24,Syracuse,NY,"174,637",22.5%
+NY-24,Watertown,NY,"82,051",10.6%
+NY-25,Rochester,NY,"776,971",100.0%
+NY-26,Buffalo,NY,"776,971",100.0%
+OH-01,Cincinnati,OH,"786,630",100.0%
+OH-02,Charleston,WV,"229,131",29.1%
+OH-02,Cincinnati,OH,"365,089",46.4%
+OH-02,Columbus,OH,"192,409",24.5%
+OH-03,Columbus,OH,"786,630",100.0%
+OH-04,Cleveland,OH,"177,383",22.5%
+OH-04,Columbus,OH,"358,397",45.6%
+OH-04,Dayton,OH,"101,151",12.9%
+OH-04,Lima,OH,"148,628",18.9%
+OH-04,Toledo,OH,"1,071",0.1%
+OH-05,Cleveland,OH,"371,529",47.2%
+OH-05,Columbus,OH,"42,025",5.3%
+OH-05,Dayton,OH,"42,528",5.4%
+OH-05,Ft. Wayne,IN,"47,737",6.1%
+OH-05,Lima,OH,"34,451",4.4%
+OH-05,Toledo,OH,"248,360",31.6%
+OH-06,Cleveland,OH,"222,639",28.3%
+OH-06,Parkersburg,WV,"59,771",7.6%
+OH-06,Wheeling,WV,"173,729",22.1%
+OH-06,Youngstown,OH,"330,491",42.0%
+OH-07,Cleveland,OH,"786,630",100.0%
+OH-08,Cincinnati,OH,"676,703",86.0%
+OH-08,Dayton,OH,"109,926",14.0%
+OH-09,Cleveland,OH,"75,622",9.6%
+OH-09,Toledo,OH,"711,008",90.4%
+OH-10,Dayton,OH,"786,630",100.0%
+OH-11,Cleveland,OH,"786,630",100.0%
+OH-12,Cleveland,OH,"63,852",8.1%
+OH-12,Columbus,OH,"636,368",80.9%
+OH-12,Zanesville,OH,"86,410",11.0%
+OH-13,Cleveland,OH,"786,630",100.0%
+OH-14,Cleveland,OH,"584,653",74.3%
+OH-14,Youngstown,OH,"201,977",25.7%
+OH-15,Columbus,OH,"608,313",77.3%
+OH-15,Dayton,OH,"178,317",22.7%
+OK-01,Tulsa,OK,"791,871",100.0%
+OK-02,Ft. Smith,AR,"87,410",11.0%
+OK-02,Joplin,MO,"30,285",3.8%
+OK-02,Oklahoma City,OK,"13,367",1.7%
+OK-02,Sherman,TX,"116,076",14.7%
+OK-02,Shreveport,LA,"30,814",3.9%
+OK-02,Tulsa,OK,"513,919",64.9%
+OK-03,Amarillo,TX,"28,729",3.6%
+OK-03,Oklahoma City,OK,"645,550",81.5%
+OK-03,Tulsa,OK,"92,807",11.7%
+OK-03,Wichita Falls,TX,"24,785",3.1%
+OK-04,Oklahoma City,OK,"513,851",64.9%
+OK-04,Sherman,TX,"96,214",12.2%
+OK-04,Wichita Falls,TX,"181,805",23.0%
+OK-05,Oklahoma City,OK,"791,870",100.0%
+OR-01,Portland,OR,"706,209",100.0%
+OR-02,Bend,OR,"24,291",3.4%
+OR-02,Boise,ID,"31,571",4.5%
+OR-02,Eugene,OR,"22,975",3.3%
+OR-02,Medford,OR,"388,922",55.1%
+OR-02,Portland,OR,"138,693",19.6%
+OR-02,Spokane,WA,"7,391",1.0%
+OR-02,Yakima,WA,"92,261",13.1%
+OR-03,Portland,OR,"706,209",100.0%
+OR-04,Eugene,OR,"631,310",89.4%
+OR-04,Medford,OR,"23,446",3.3%
+OR-04,Portland,OR,"51,452",7.3%
+OR-05,Bend,OR,"173,962",24.6%
+OR-05,Portland,OR,"532,247",75.4%
+OR-06,Portland,OR,"706,212",100.0%
+PA-01,Philadelphia,PA,"764,866",100.0%
+PA-02,Philadelphia,PA,"764,865",100.0%
+PA-03,Philadelphia,PA,"764,864",100.0%
+PA-04,Philadelphia,PA,"764,865",100.0%
+PA-05,Philadelphia,PA,"764,866",100.0%
+PA-06,Philadelphia,PA,"764,864",100.0%
+PA-07,Philadelphia,PA,"687,508",89.9%
+PA-07,Wilkes-Barre,PA,"77,357",10.1%
+PA-08,New York,NY,"58,535",7.7%
+PA-08,Wilkes-Barre,PA,"706,331",92.3%
+PA-09,Harrisburg,PA,"143,257",18.7%
+PA-09,Philadelphia,PA,"57,790",7.6%
+PA-09,Wilkes-Barre,PA,"563,817",73.7%
+PA-10,Harrisburg,PA,"764,864",100.0%
+PA-11,Harrisburg,PA,"764,864",100.0%
+PA-12,Pittsburgh,PA,"764,864",100.0%
+PA-13,Harrisburg,PA,"400,842",52.4%
+PA-13,Johnstown,PA,"349,466",45.7%
+PA-13,Washington,DC,"14,556",1.9%
+PA-14,Johnstown,PA,"72,626",9.5%
+PA-14,Pittsburgh,PA,"692,240",90.5%
+PA-15,Buffalo,NY,"56,828",7.4%
+PA-15,Elmira,NY,"41,045",5.4%
+PA-15,Erie,PA,"38,587",5.0%
+PA-15,Johnstown,PA,"318,763",41.7%
+PA-15,Pittsburgh,PA,"149,501",19.5%
+PA-15,Wilkes-Barre,PA,"160,140",20.9%
+PA-16,Erie,PA,"354,814",46.4%
+PA-16,Pittsburgh,PA,"299,399",39.1%
+PA-16,Youngstown,OH,"110,652",14.5%
+PA-17,Pittsburgh,PA,"764,864",100.0%
+RI-01,Providence,RI,"548,078",100.0%
+RI-02,Providence,RI,"549,301",100.0%
+SC-01,Charleston,SC,"539,505",73.8%
+SC-01,Savannah,GA,"191,698",26.2%
+SC-02,Augusta,GA,"189,397",25.9%
+SC-02,Columbia,SC,"541,806",74.1%
+SC-03,Augusta,GA,"35,183",4.8%
+SC-03,Columbia,SC,"56,581",7.7%
+SC-03,Greenville,SC,"639,440",87.5%
+SC-04,Greenville,SC,"731,204",100.0%
+SC-05,Charlotte,NC,"410,400",56.1%
+SC-05,Columbia,SC,"179,543",24.6%
+SC-05,Greenville,SC,"141,261",19.3%
+SC-06,Augusta,GA,"21,350",2.9%
+SC-06,Charleston,SC,"329,761",45.1%
+SC-06,Columbia,SC,"326,713",44.7%
+SC-06,Myrtle Beach,SC,"10,609",1.5%
+SC-06,Savannah,GA,"42,771",5.8%
+SC-07,Charleston,SC,"63,404",8.7%
+SC-07,Charlotte,NC,"43,273",5.9%
+SC-07,Myrtle Beach,SC,"624,526",85.4%
+SD-AL,Minot,ND,"3,902",0.4%
+SD-AL,Rapid City,SD,"218,666",24.7%
+SD-AL,Sioux City,IA,"16,811",1.9%
+SD-AL,Sioux Falls,SD,"647,288",73.0%
+TN-01,Knoxville,TN,"257,602",33.5%
+TN-01,Tri-Cities,TN,"510,269",66.5%
+TN-02,Knoxville,TN,"767,871",100.0%
+TN-03,Chattanooga,TN,"545,647",71.1%
+TN-03,Knoxville,TN,"222,224",28.9%
+TN-04,Chattanooga,TN,"118,733",15.5%
+TN-04,Huntsville,AL,"35,319",4.6%
+TN-04,Nashville,TN,"613,820",79.9%
+TN-05,Nashville,TN,"767,871",100.0%
+TN-06,Knoxville,TN,"95,603",12.5%
+TN-06,Nashville,TN,"672,268",87.5%
+TN-07,Nashville,TN,"767,871",100.0%
+TN-08,Jackson,TN,"249,706",32.5%
+TN-08,Memphis,TN,"409,880",53.4%
+TN-08,Nashville,TN,"37,591",4.9%
+TN-08,Paducah,KY,"70,694",9.2%
+TN-09,Memphis,TN,"767,871",100.0%
+TX-01,Dallas,TX,"8,638",1.1%
+TX-01,Shreveport,LA,"281,006",36.6%
+TX-01,Tyler,TX,"477,343",62.2%
+TX-02,Houston,TX,"766,987",100.0%
+TX-03,Dallas,TX,"766,987",100.0%
+TX-04,Dallas,TX,"622,806",81.2%
+TX-04,Sherman,TX,"135,543",17.7%
+TX-04,Shreveport,LA,"8,638",1.1%
+TX-05,Dallas,TX,"708,028",92.3%
+TX-05,Tyler,TX,"58,959",7.7%
+TX-06,Dallas,TX,"716,575",93.4%
+TX-06,Tyler,TX,"50,412",6.6%
+TX-07,Houston,TX,"766,987",100.0%
+TX-08,Houston,TX,"766,987",100.0%
+TX-09,Houston,TX,"766,987",100.0%
+TX-10,Austin,TX,"329,450",43.0%
+TX-10,Houston,TX,"172,591",22.5%
+TX-10,Waco,TX,"264,946",34.5%
+TX-11,Abilene,TX,"55,679",7.3%
+TX-11,Austin,TX,"25,196",3.3%
+TX-11,Odessa,TX,"336,270",43.8%
+TX-11,San Angelo,TX,"143,354",18.7%
+TX-11,Waco,TX,"206,488",26.9%
+TX-12,Dallas,TX,"766,987",100.0%
+TX-13,Abilene,TX,"3,353",0.4%
+TX-13,Amarillo,TX,"411,527",53.7%
+TX-13,Dallas,TX,"159,920",20.9%
+TX-13,Lubbock,TX,"3,098",0.4%
+TX-13,Wichita Falls,TX,"189,089",24.7%
+TX-14,Beaumont,TX,"269,754",35.2%
+TX-14,Houston,TX,"497,233",64.8%
+TX-15,Corpus Christi,TX,"57,302",7.5%
+TX-15,Harlingen,TX,"576,365",75.1%
+TX-15,San Antonio,TX,"133,320",17.4%
+TX-16,El Paso,TX,"766,986",100.0%
+TX-17,Austin,TX,"156,705",20.4%
+TX-17,Houston,TX,"73,321",9.6%
+TX-17,San Antonio,TX,"6,924",0.9%
+TX-17,Tyler,TX,"173,114",22.6%
+TX-17,Waco,TX,"356,923",46.5%
+TX-18,Houston,TX,"766,987",100.0%
+TX-19,Abilene,TX,"218,525",28.5%
+TX-19,Amarillo,TX,"24,211",3.2%
+TX-19,Lubbock,TX,"464,104",60.5%
+TX-19,Odessa,TX,"58,707",7.7%
+TX-19,Wichita Falls,TX,"1,440",0.2%
+TX-20,San Antonio,TX,"766,987",100.0%
+TX-21,Austin,TX,"169,852",22.1%
+TX-21,San Antonio,TX,"597,135",77.9%
+TX-22,Houston,TX,"766,987",100.0%
+TX-23,El Paso,TX,"104,061",13.6%
+TX-23,Odessa,TX,"79,241",10.3%
+TX-23,San Angelo,TX,"8,921",1.2%
+TX-23,San Antonio,TX,"574,764",74.9%
+TX-24,Dallas,TX,"766,987",100.0%
+TX-25,Abilene,TX,"38,978",5.1%
+TX-25,Dallas,TX,"710,142",92.6%
+TX-25,Wichita Falls,TX,"17,867",2.3%
+TX-26,Dallas,TX,"766,987",100.0%
+TX-27,Austin,TX,"90,197",11.8%
+TX-27,Corpus Christi,TX,"483,551",63.0%
+TX-27,Houston,TX,"35,094",4.6%
+TX-27,San Antonio,TX,"66,826",8.7%
+TX-27,Victoria,TX,"91,319",11.9%
+TX-28,Corpus Christi,TX,"14,669",1.9%
+TX-28,Harlingen,TX,"65,920",8.6%
+TX-28,Laredo,TX,"281,003",36.6%
+TX-28,San Antonio,TX,"405,395",52.9%
+TX-29,Houston,TX,"766,987",100.0%
+TX-30,Dallas,TX,"766,987",100.0%
+TX-31,Austin,TX,"461,465",60.2%
+TX-31,Dallas,TX,"26,457",3.4%
+TX-31,Waco,TX,"279,065",36.4%
+TX-32,Dallas,TX,"766,987",100.0%
+TX-33,Dallas,TX,"766,987",100.0%
+TX-34,Corpus Christi,TX,"31,390",4.1%
+TX-34,Harlingen,TX,"735,597",95.9%
+TX-35,Austin,TX,"437,857",57.1%
+TX-35,San Antonio,TX,"329,130",42.9%
+TX-36,Beaumont,TX,"192,806",25.1%
+TX-36,Houston,TX,"574,181",74.9%
+TX-37,Austin,TX,"766,987",100.0%
+TX-38,Houston,TX,"766,987",100.0%
+UT-01,Salt Lake City,UT,"817,904",100.0%
+UT-02,Salt Lake City,UT,"817,904",100.0%
+UT-03,Salt Lake City,UT,"817,904",100.0%
+UT-04,Salt Lake City,UT,"817,904",100.0%
+VA-01,Norfolk,VA,"223,895",28.5%
+VA-01,Richmond,VA,"542,146",69.1%
+VA-01,Washington,DC,"18,631",2.4%
+VA-02,Norfolk,VA,"784,672",100.0%
+VA-03,Norfolk,VA,"784,672",100.0%
+VA-04,Norfolk,VA,"13,700",1.7%
+VA-04,Richmond,VA,"770,972",98.3%
+VA-05,Charlottesville,VA,"185,555",23.6%
+VA-05,Raleigh,NC,"30,315",3.9%
+VA-05,Richmond,VA,"194,676",24.8%
+VA-05,Roanoke,VA,"374,126",47.7%
+VA-06,Harrisonburg,VA,"260,819",33.2%
+VA-06,Roanoke,VA,"280,497",35.7%
+VA-06,Washington,DC,"243,356",31.0%
+VA-07,Charlottesville,VA,"34,665",4.4%
+VA-07,Richmond,VA,"67,120",8.6%
+VA-07,Washington,DC,"682,887",87.0%
+VA-08,Washington,DC,"784,672",100.0%
+VA-09,Bluefield,WV,"39,991",5.1%
+VA-09,Greensboro,NC,"17,639",2.2%
+VA-09,Roanoke,VA,"483,546",61.6%
+VA-09,Tri-Cities,TN,"243,496",31.0%
+VA-10,Washington,DC,"784,672",100.0%
+VA-11,Washington,DC,"784,673",100.0%
+VT-AL,Albany,NY,"37,347",5.8%
+VT-AL,Boston,MA,"45,905",7.1%
+VT-AL,Burlington,VT,"559,825",87.1%
+WA-01,Seattle,WA,"770,539",100.0%
+WA-02,Seattle,WA,"770,531",100.0%
+WA-03,Portland,OR,"631,457",82.0%
+WA-03,Seattle,WA,"139,070",18.0%
+WA-04,Portland,OR,"22,789",3.0%
+WA-04,Seattle,WA,"42,398",5.5%
+WA-04,Spokane,WA,"156,979",20.4%
+WA-04,Yakima,WA,"548,369",71.2%
+WA-05,Spokane,WA,"698,475",90.6%
+WA-05,Yakima,WA,"72,051",9.4%
+WA-06,Seattle,WA,"770,525",100.0%
+WA-07,Seattle,WA,"770,521",100.0%
+WA-08,Seattle,WA,"726,119",94.2%
+WA-08,Yakima,WA,"44,393",5.8%
+WA-09,Seattle,WA,"770,536",100.0%
+WA-10,Seattle,WA,"770,529",100.0%
+WI-01,Madison,WI,"127,991",17.4%
+WI-01,Milwaukee,WI,"608,724",82.6%
+WI-02,Madison,WI,"736,715",100.0%
+WI-03,La Crosse,WI,"420,504",57.1%
+WI-03,Madison,WI,"93,709",12.7%
+WI-03,Minneapolis,MN,"87,652",11.9%
+WI-03,Wausau,WI,"134,851",18.3%
+WI-04,Milwaukee,WI,"736,714",100.0%
+WI-05,Milwaukee,WI,"736,715",100.0%
+WI-06,Green Bay,WI,"404,368",54.9%
+WI-06,Madison,WI,"74,082",10.1%
+WI-06,Milwaukee,WI,"258,264",35.1%
+WI-07,Duluth,MN,"100,753",13.7%
+WI-07,La Crosse,WI,"86,775",11.8%
+WI-07,Madison,WI,"5,912",0.8%
+WI-07,Marquette,MI,"4,558",0.6%
+WI-07,Minneapolis,MN,"218,373",29.6%
+WI-07,Wausau,WI,"320,344",43.5%
+WI-08,Green Bay,WI,"736,714",100.0%
+WV-01,Bluefield,WV,"272,548",30.4%
+WV-01,Charleston,WV,"593,721",66.3%
+WV-01,Clarksburg,WV,"15,786",1.8%
+WV-01,Harrisonburg,VA,"6,143",0.7%
+WV-01,Roanoke,VA,"7,869",0.9%
+WV-02,Clarksburg,WV,"246,091",27.4%
+WV-02,Parkersburg,WV,"91,949",10.2%
+WV-02,Pittsburgh,PA,"140,038",15.6%
+WV-02,Washington,DC,"272,146",30.3%
+WV-02,Wheeling,WV,"147,425",16.4%
+WY-AL,Billings,MT,"41,145",7.1%
+WY-AL,Casper,WY,"145,246",25.2%
+WY-AL,Cheyenne,WY,"113,010",19.6%
+WY-AL,Denver,CO,"118,148",20.5%
+WY-AL,Idaho Falls,ID,"23,331",4.0%
+WY-AL,Rapid City,SD,"44,940",7.8%
+WY-AL,Salt Lake City,UT,"91,031",15.8%

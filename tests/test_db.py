@@ -15,6 +15,16 @@ from fcc_ca_ads.db.queries import (
     insert_extraction,
     get_extractions_for_file,
     query_extractions,
+    upsert_contract,
+    get_contract,
+    query_contracts,
+    insert_line_item,
+    get_line_items_for_file,
+    query_line_items,
+    summary_by_candidate,
+    summary_by_show,
+    file_exists_by_sha256,
+    set_file_type,
 )
 
 
@@ -159,6 +169,202 @@ def test_query_extractions_by_candidate(db):
     results = query_extractions(db, field_name="candidate", value_like="%Smith%")
     assert len(results) == 1
     assert results[0]["field_value"] == "Jane Smith"
+
+
+def test_contracts_table_exists(db):
+    tables = [
+        r[0]
+        for r in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+    ]
+    assert "contracts" in tables
+
+
+def test_upsert_and_get_contract(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_file(
+        db, file_id="f1", entity_id="1", file_manager_id="fm-1",
+        file_name="order.pdf", folder_id="fold-1", file_size=1024,
+    )
+    upsert_contract(
+        db,
+        contract_id="1:424082",
+        entity_id="1",
+        contract_number="424082",
+        advertiser="TOM STEYER FOR GOVERNOR 2026",
+        candidate="Tom Steyer",
+        agency="BUYER'S EDGE MEDIA LLC",
+        contract_start="02/23/2026",
+        contract_end="03/09/2026",
+        total_spots=227,
+        gross_total=522700.00,
+        agency_commission=78405.00,
+        net_total=444295.00,
+        demographic="A25-54",
+        revision_number=0,
+        latest_file_id="f1",
+    )
+    c = get_contract(db, "1:424082")
+    assert c is not None
+    assert c["contract_number"] == "424082"
+    assert c["advertiser"] == "TOM STEYER FOR GOVERNOR 2026"
+    assert c["gross_total"] == 522700.00
+    assert c["net_total"] == 444295.00
+    assert c["total_spots"] == 227
+
+
+def test_upsert_contract_updates_revision(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_file(
+        db, file_id="f1", entity_id="1", file_manager_id="fm-1",
+        file_name="order.pdf", folder_id="fold-1", file_size=1024,
+    )
+    upsert_file(
+        db, file_id="f2", entity_id="1", file_manager_id="fm-2",
+        file_name="order-rev1.pdf", folder_id="fold-1", file_size=1024,
+    )
+    upsert_contract(
+        db, contract_id="1:424082", entity_id="1", contract_number="424082",
+        gross_total=500000.00, revision_number=0, latest_file_id="f1",
+    )
+    upsert_contract(
+        db, contract_id="1:424082", entity_id="1", contract_number="424082",
+        gross_total=522700.00, revision_number=1, latest_file_id="f2",
+    )
+    c = get_contract(db, "1:424082")
+    assert c["gross_total"] == 522700.00
+    assert c["revision_number"] == 1
+    assert c["latest_file_id"] == "f2"
+
+
+def test_query_contracts_by_candidate(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_contract(
+        db, contract_id="1:100", entity_id="1", contract_number="100",
+        candidate="Tom Steyer",
+    )
+    upsert_contract(
+        db, contract_id="1:200", entity_id="1", contract_number="200",
+        candidate="Jane Smith",
+    )
+    results = query_contracts(db, candidate="Steyer")
+    assert len(results) == 1
+    assert results[0]["candidate"] == "Tom Steyer"
+
+
+def test_query_contracts_by_market(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_station(db, "2", "KPIX-TV", "SAN FRANCISCO", "SF", "CA", "Full Service")
+    upsert_contract(
+        db, contract_id="1:100", entity_id="1", contract_number="100",
+        candidate="Tom Steyer",
+    )
+    upsert_contract(
+        db, contract_id="2:200", entity_id="2", contract_number="200",
+        candidate="Tom Steyer",
+    )
+    results = query_contracts(db, market="LOS ANGELES")
+    assert len(results) == 1
+    assert results[0]["call_sign"] == "KABC-TV"
+
+
+def test_line_items_table_exists(db):
+    tables = [
+        r[0]
+        for r in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+    ]
+    assert "line_items" in tables
+
+
+def _seed_line_items(db):
+    """Helper to seed station, file, contract, and line items."""
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_file(
+        db, file_id="f1", entity_id="1", file_manager_id="fm-1",
+        file_name="order.pdf", folder_id="fold-1", file_size=1024,
+    )
+    upsert_contract(
+        db, contract_id="1:424082", entity_id="1", contract_number="424082",
+        candidate="Tom Steyer", advertiser="TOM STEYER FOR GOVERNOR",
+    )
+    insert_line_item(
+        db, file_id="f1", contract_number="424082", line_number=58,
+        channel="KABC", show_name="NBA LA Lakers", time_slot="various",
+        spot_length=":30", rate_type="NM", spots=1, rate_per_spot=25000.0,
+        line_total=25000.0, start_date="03/03/26", end_date="03/08/26",
+    )
+    insert_line_item(
+        db, file_id="f1", contract_number="424082", line_number=59,
+        channel="KABC", show_name="5A News", time_slot="5:00A-5:30A",
+        spot_length=":30", rate_type="NM", spots=5, rate_per_spot=500.0,
+        line_total=2500.0, start_date="03/03/26", end_date="03/07/26",
+    )
+
+
+def test_insert_and_get_line_items(db):
+    _seed_line_items(db)
+    items = get_line_items_for_file(db, "f1")
+    assert len(items) == 2
+    assert items[0]["show_name"] == "NBA LA Lakers"
+    assert items[0]["rate_per_spot"] == 25000.0
+
+
+def test_query_line_items_by_candidate(db):
+    _seed_line_items(db)
+    items = query_line_items(db, candidate="Steyer")
+    assert len(items) == 2
+    # Should be ordered by rate_per_spot DESC
+    assert items[0]["rate_per_spot"] == 25000.0
+
+
+def test_query_line_items_by_show(db):
+    _seed_line_items(db)
+    items = query_line_items(db, show_name="Lakers")
+    assert len(items) == 1
+    assert items[0]["show_name"] == "NBA LA Lakers"
+
+
+def test_summary_by_candidate(db):
+    _seed_line_items(db)
+    summary = summary_by_candidate(db, "Steyer")
+    assert len(summary) == 1
+    assert summary[0]["call_sign"] == "KABC-TV"
+    assert summary[0]["total_spots"] == 6
+    assert summary[0]["total_spend"] == 27500.0
+
+
+def test_summary_by_show(db):
+    _seed_line_items(db)
+    shows = summary_by_show(db, candidate="Steyer")
+    assert len(shows) == 2
+    # Ordered by total_spend DESC
+    assert shows[0]["show_name"] == "NBA LA Lakers"
+    assert shows[0]["total_spend"] == 25000.0
+
+
+def test_file_exists_by_sha256(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_file(
+        db, file_id="f1", entity_id="1", file_manager_id="fm-1",
+        file_name="order.pdf", folder_id="fold-1", file_size=1024,
+    )
+    mark_downloaded(db, "f1", sha256="abc123", local_path="/data/raw/test.pdf")
+    assert file_exists_by_sha256(db, "abc123") is not None
+    assert file_exists_by_sha256(db, "nonexistent") is None
+
+
+def test_set_file_type(db):
+    upsert_station(db, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    upsert_file(
+        db, file_id="f1", entity_id="1", file_manager_id="fm-1",
+        file_name="order.pdf", folder_id="fold-1", file_size=1024,
+    )
+    set_file_type(db, "f1", "contract")
+    f = get_file(db, "f1")
+    assert f["file_type"] == "contract"
 
 
 def test_query_extractions_by_market(db):
