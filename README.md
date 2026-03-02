@@ -30,18 +30,22 @@ fcc-ad-tracker summary --station KABC-TV --by show
 fcc-ad-tracker summary --show "American Idol"
 ```
 
-### Not yet — needs a DMA-to-district crosswalk
-
 **What is being spent in a congressional district?**
+```bash
+fcc-ad-tracker load-districts --input data/downballot-cd-to-dma-2024.csv
+fcc-ad-tracker summary --by district --state CA
+# CA-28 | estimated_spend=$2,978,500 | contracts=14
+# CA-30 | estimated_spend=$2,978,500 | contracts=14
+```
 
-This is the hard problem. TV markets (DMAs) don't align to congressional districts. The LA DMA covers roughly 18 House districts. The Sacramento DMA bleeds into multiple districts that also touch other DMAs. A single ad buy on KABC reaches all of them.
+District-level numbers are estimates. TV markets (DMAs) don't align to congressional districts — the LA DMA covers roughly 18 House districts. Spend is allocated proportionally by population weight across overlapping districts.
 
-To answer district-level questions you need:
-1. A **DMA-to-district mapping** with population weights — what percentage of each district's population falls within each DMA
-2. **Spend allocation** — if a candidate spends $500K on LA TV, how much of that is "for" CA-27 vs. CA-34 vs. CA-40
-3. A view of whether the ad is actually targeting that district or just happens to reach it (a gubernatorial ad on LA TV isn't really "spending in CA-27")
-
-Nielsen publishes DMA-to-county mappings. Census data maps counties to congressional districts. Combining these would let us estimate district-level exposure, but it's an estimate — not a precise answer. The tool would need a `districts` table and a weighted crosswalk to make this work.
+**How is spending trending week over week?**
+```bash
+fcc-ad-tracker summary --candidate "Steyer" --by week
+# 2026-01-05 | spots=42 | spend=$55,300
+# 2026-03-02 | spots=98 | spend=$152,250
+```
 
 ## How it works
 
@@ -51,8 +55,11 @@ Nielsen publishes DMA-to-county mappings. Census data maps counties to congressi
 4. **Extract** structured data:
    - Basic fields (advertiser, candidate, total, flight dates) — works broadly across filing formats
    - Contract metadata (contract number, revision, agency, gross/commission/net totals) — works on structured contracts
-   - Per-spot line items (show, time slot, rate, spot count) — works on Strata/WideOrbit format contracts
-5. **Query** and **summarize** the results
+   - Per-spot line items (show, time slot, rate, spot count) — regex handles WideOrbit/Strata formats; Gemini Flash handles everything else
+   - NAB PB-18/PB-19 forms — political broadcasting disclosure data
+5. **Normalize** candidates — auto-resolves candidate names during extraction, with fuzzy matching and manual alias linking
+6. **Query** and **summarize** the results — by candidate, station, show, week, or congressional district
+7. **Monitor** via RSS — poll station feeds for new filings and auto-download
 
 ## What the data actually is
 
@@ -74,7 +81,9 @@ This is the same data available through each station's online public file at `pu
 |------|----------|-----------------|
 | Basic fields (advertiser, candidate, total, dates) | Most political filings | Badly scanned PDFs without OCR |
 | Contract metadata (contract #, agency, gross/net) | Structured contracts with labeled fields | Handwritten or non-standard formats |
-| Line items (per-spot show/rate/daypart) | Strata/WideOrbit format (`N <line#>` rows) | Other buying platform formats |
+| Line items (per-spot show/rate/daypart) — regex | Strata/WideOrbit format (`N <line#>` rows) | Other buying platform formats |
+| Line items — Gemini fallback | Most PDF contract formats (Fox, Tegna, etc.) | Badly scanned or handwritten PDFs |
+| NAB forms (PB-18/PB-19) | Standard FCC disclosure forms | Non-standard layouts |
 
 **Not covered:** Radio stations, low-power/translator TV stations, reconciliation docs (what actually aired vs. ordered), invoice-specific fields.
 
@@ -122,7 +131,25 @@ fcc-ad-tracker query --candidate "Garcia"             # search extractions
 fcc-ad-tracker contracts --candidate "Steyer"         # contract-level totals
 fcc-ad-tracker summary --candidate "Steyer"           # spend by station
 fcc-ad-tracker summary --candidate "Steyer" --by show # spend by show
+fcc-ad-tracker summary --candidate "Steyer" --by week # spend over time
 fcc-ad-tracker summary --station KABC-TV --by show    # all campaigns on a station
+fcc-ad-tracker summary --by district --state CA       # spend by congressional district
+
+# Candidates
+fcc-ad-tracker list-candidates                        # all resolved candidates
+fcc-ad-tracker normalize-candidate --canonical "Tom Steyer" --alias "STEYER 2026"
+fcc-ad-tracker suggest-candidate-links --apply        # fuzzy-match unlinked contracts
+
+# RSS monitoring
+fcc-ad-tracker rss-poll --station KABC-TV             # check for new filings
+fcc-ad-tracker rss-sync --station KABC-TV             # poll + download new files
+fcc-ad-tracker rss-list --station KABC-TV             # list tracked RSS items
+
+# Districts
+fcc-ad-tracker load-districts --input data/downballot-cd-to-dma-2024.csv
+
+# FCC search
+fcc-ad-tracker search-api --query "Steyer" --campaign-year 2026
 
 # Export
 fcc-ad-tracker contracts --format csv > contracts.csv
@@ -152,21 +179,18 @@ The CLI automatically loads `.env` at startup.
 
 ## Database
 
-Five tables in SQLite:
+SQLite with these tables:
 
 - **stations** — call sign, market/DMA, city, state
-- **files** — downloaded PDFs, SHA-256 hash, file type (contract/invoice/nab/traffic), OCR status
+- **files** — downloaded PDFs, SHA-256 hash, file type, extraction status (`done`/`error`/`not_applicable`/`no_line_items`)
 - **extractions** — per-field results with confidence scores (high/medium/low)
-- **contracts** — contract number, revision, agency, gross/commission/net totals, demographic target
-- **line_items** — per-spot: show name, time slot, spot length, rate, rate type, spot count
+- **contracts** — contract number, revision, agency, gross/commission/net totals, `latest_file_id` for revision tracking
+- **line_items** — per-spot: show name, time slot, spot length, rate, rate type, spot count, extraction method (regex/gemini)
+- **line_item_weeks** — weekly spend breakdowns per line item
+- **candidates** — canonical candidate names with office sought
+- **candidate_aliases** — alternate names and committee names linked to candidates
+- **nab_forms** — NAB PB-18/PB-19 political broadcasting disclosure data
+- **rss_items** — tracked RSS feed items per station
+- **districts** — DMA-to-congressional-district crosswalk with population weights
 
-## What would it take to add district-level analysis
-
-The gap between "what's being spent in a DMA" and "what's being spent in a congressional district" is a crosswalk table. Here's what that looks like:
-
-1. **DMA-to-county mapping** — Nielsen publishes these annually. Each county belongs to exactly one DMA.
-2. **County-to-district mapping** — Census/redistricting data. Counties split across multiple districts need population weighting.
-3. **A `dma_districts` crosswalk table** — joining the two above, with a `weight` column representing the share of each district's population within each DMA.
-4. **A `--district` flag** on `summary` and `contracts` — that joins through the crosswalk and allocates spend proportionally.
-
-The hard part isn't the code — it's that the allocation is inherently imprecise. A $25,000 Lakers spot on KABC reaches all 18 districts in the LA DMA. Allocating $1,389 to each district by population share is mathematically defensible but editorially debatable. The right framing is probably "estimated ad exposure" rather than "ad spend in district X."
+Contract revisions are handled automatically — only the latest revision's line items are used in queries and summaries. Older revisions are pruned during extraction.
