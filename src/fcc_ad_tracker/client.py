@@ -5,7 +5,8 @@ import time
 
 import requests
 
-from fcc_ca_ads.config import OpifConfig
+from fcc_ad_tracker.cache import FileCache
+from fcc_ad_tracker.config import OpifConfig
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ class OpifClient:
         self.session = requests.Session()
         self._last_request_time = 0.0
         self._rate_lock = threading.Lock()
+        self._cache = FileCache(self.config.cache_dir) if self.config.cache_dir else None
 
     def _rate_limit(self):
         with self._rate_lock:
@@ -60,14 +62,23 @@ class OpifClient:
         resp.raise_for_status()
         return resp  # unreachable in practice
 
-    def get_parent_folders(self, entity_id: str) -> dict:
-        resp = self._request(
-            "GET",
-            "/api/manager/folder/parentFolders.json",
-            params={"entityId": entity_id, "sourceService": "tv"},
-        )
+    _CACHE_TTL_24H = 86400
+
+    def get_parent_folders(self, entity_id: str, *, force: bool = False) -> dict:
+        url = "/api/manager/folder/parentFolders.json"
+        params = {"entityId": entity_id, "sourceService": "tv"}
+        if self._cache and not force:
+            key = FileCache.make_key("folders", url, params)
+            cached = self._cache.get("folders", key)
+            if cached is not None:
+                return cached
+        resp = self._request("GET", url, params=params)
         resp.raise_for_status()
-        return resp.json()
+        data = resp.json()
+        if self._cache:
+            key = FileCache.make_key("folders", url, params)
+            self._cache.set("folders", key, data, ttl_seconds=self._CACHE_TTL_24H)
+        return data
 
     def get_folder(self, folder_id: str, entity_id: str) -> dict:
         resp = self._request(
@@ -121,7 +132,17 @@ class OpifClient:
         resp.raise_for_status()
         return resp.url
 
-    def search_facilities(self, state: str) -> dict:
-        resp = self._request("GET", f"/api/service/tv/facility/search/{state}.json")
+    def search_facilities(self, state: str, *, force: bool = False) -> dict:
+        url = f"/api/service/tv/facility/search/{state}.json"
+        if self._cache and not force:
+            key = FileCache.make_key("facilities", url)
+            cached = self._cache.get("facilities", key)
+            if cached is not None:
+                return cached
+        resp = self._request("GET", url)
         resp.raise_for_status()
-        return resp.json()
+        data = resp.json()
+        if self._cache:
+            key = FileCache.make_key("facilities", url)
+            self._cache.set("facilities", key, data, ttl_seconds=self._CACHE_TTL_24H)
+        return data
