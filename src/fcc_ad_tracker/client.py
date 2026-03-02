@@ -12,12 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class OpifClient:
-    def __init__(self, config: OpifConfig | None = None):
+    def __init__(self, config: OpifConfig | None = None, scratchpad=None):
         self.config = config or OpifConfig()
         self.session = requests.Session()
         self._last_request_time = 0.0
         self._rate_lock = threading.Lock()
         self._cache = FileCache(self.config.cache_dir) if self.config.cache_dir else None
+        self._scratchpad = scratchpad
 
     def _rate_limit(self):
         with self._rate_lock:
@@ -31,6 +32,7 @@ class OpifClient:
     ) -> requests.Response:
         url = f"{self.config.base_url}{path}"
         kwargs.setdefault("timeout", self.config.request_timeout)
+        t0 = time.monotonic()
 
         for attempt in range(self.config.max_retries + 1):
             self._rate_limit()
@@ -39,6 +41,16 @@ class OpifClient:
                     method, url, allow_redirects=allow_redirects, **kwargs
                 )
                 if resp.status_code not in self.config.retryable_status_codes:
+                    if self._scratchpad:
+                        duration_ms = round((time.monotonic() - t0) * 1000)
+                        self._scratchpad.log(
+                            "api_call",
+                            method=method, url=url,
+                            params=kwargs.get("params"),
+                            status_code=resp.status_code,
+                            cache_hit=False,
+                            duration_ms=duration_ms,
+                        )
                     return resp
                 logger.warning(
                     "Retryable status %d on %s (attempt %d)",
@@ -71,6 +83,12 @@ class OpifClient:
             key = FileCache.make_key("folders", url, params)
             cached = self._cache.get("folders", key)
             if cached is not None:
+                if self._scratchpad:
+                    self._scratchpad.log(
+                        "api_call", method="GET",
+                        url=f"{self.config.base_url}{url}",
+                        params=params, cache_hit=True,
+                    )
                 return cached
         resp = self._request("GET", url, params=params)
         resp.raise_for_status()
@@ -138,6 +156,12 @@ class OpifClient:
             key = FileCache.make_key("facilities", url)
             cached = self._cache.get("facilities", key)
             if cached is not None:
+                if self._scratchpad:
+                    self._scratchpad.log(
+                        "api_call", method="GET",
+                        url=f"{self.config.base_url}{url}",
+                        cache_hit=True,
+                    )
                 return cached
         resp = self._request("GET", url)
         resp.raise_for_status()

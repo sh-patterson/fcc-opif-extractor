@@ -3,8 +3,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from fcc_ca_ads.cli import cli
-from fcc_ca_ads.discover import Station
+from fcc_ad_tracker.cli import cli
+from fcc_ad_tracker.discover import Station
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def runner():
 def test_cli_help(runner):
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
-    assert "FCC California Political Ad" in result.output
+    assert "FCC Political Ad Tracker" in result.output
 
 
 def test_status_command(runner, tmp_path):
@@ -25,8 +25,8 @@ def test_status_command(runner, tmp_path):
     assert "Stations: 0" in result.output
 
 
-@patch("fcc_ca_ads.cli.discover_stations")
-@patch("fcc_ca_ads.cli.save_stations")
+@patch("fcc_ad_tracker.cli.discover_stations")
+@patch("fcc_ad_tracker.cli.save_stations")
 def test_discover_command(mock_save, mock_discover, runner, tmp_path):
     mock_discover.return_value = [
         Station("1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service"),
@@ -47,8 +47,8 @@ def test_download_help_has_workers(runner, tmp_path):
 
 def _seed_station(db_path, call_sign="KABC-TV", entity_id="E001"):
     """Seed a station into the database."""
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries as q
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries as q
 
     conn = get_connection(db_path)
     q.upsert_station(conn, entity_id, call_sign, "LOS ANGELES", "LA", "CA", "Full Service")
@@ -70,12 +70,12 @@ def _fake_history(n=3):
     ]
 
 
-@patch("fcc_ca_ads.download.download_pdf")
+@patch("fcc_ad_tracker.download.download_pdf")
 def test_download_station_serial(mock_dl, runner, tmp_path):
     """_download_station with workers=1 downloads files and records them in DB."""
-    from fcc_ca_ads.cli import _download_station
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries as q
+    from fcc_ad_tracker.cli import _download_station
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries as q
     from unittest.mock import MagicMock, patch as _patch
 
     db_path = str(tmp_path / "test.db")
@@ -90,7 +90,7 @@ def test_download_station_serial(mock_dl, runner, tmp_path):
         call_count["n"] += 1
         return f"sha-{call_count['n']}"
 
-    with _patch("fcc_ca_ads.download.sha256_file", side_effect=_unique_sha):
+    with _patch("fcc_ad_tracker.download.sha256_file", side_effect=_unique_sha):
         count = _download_station(
             client, db_path, "E001", "KABC-TV", "2025-01-01", "2025-12-31", 100,
             dry_run=False, workers=1,
@@ -106,12 +106,12 @@ def test_download_station_serial(mock_dl, runner, tmp_path):
         assert f["sha256"] is not None
 
 
-@patch("fcc_ca_ads.download.download_pdf")
+@patch("fcc_ad_tracker.download.download_pdf")
 def test_download_station_concurrent(mock_dl, runner, tmp_path):
     """_download_station with workers=2 downloads files concurrently and records all in DB."""
-    from fcc_ca_ads.cli import _download_station
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries as q
+    from fcc_ad_tracker.cli import _download_station
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries as q
     from unittest.mock import MagicMock, patch as _patch
     import threading
 
@@ -129,7 +129,7 @@ def test_download_station_concurrent(mock_dl, runner, tmp_path):
             call_count["n"] += 1
             return f"sha-{call_count['n']}"
 
-    with _patch("fcc_ca_ads.download.sha256_file", side_effect=_unique_sha):
+    with _patch("fcc_ad_tracker.download.sha256_file", side_effect=_unique_sha):
         count = _download_station(
             client, db_path, "E001", "KABC-TV", "2025-01-01", "2025-12-31", 100,
             dry_run=False, workers=2,
@@ -145,10 +145,10 @@ def test_download_station_concurrent(mock_dl, runner, tmp_path):
         assert f["sha256"] is not None
 
 
-@patch("fcc_ca_ads.download.download_pdf")
+@patch("fcc_ad_tracker.download.download_pdf")
 def test_download_sha256_dedup(mock_dl, runner, tmp_path):
     """Files with identical SHA-256 hashes are skipped (dedup)."""
-    from fcc_ca_ads.cli import _download_station
+    from fcc_ad_tracker.cli import _download_station
     from unittest.mock import MagicMock, patch as _patch
 
     db_path = str(tmp_path / "test.db")
@@ -158,7 +158,7 @@ def test_download_sha256_dedup(mock_dl, runner, tmp_path):
     client.get_file_history.return_value = _fake_history(3)
 
     # All files return same hash — only first should be kept
-    with _patch("fcc_ca_ads.download.sha256_file", return_value="same-hash"):
+    with _patch("fcc_ad_tracker.download.sha256_file", return_value="same-hash"):
         count = _download_station(
             client, db_path, "E001", "KABC-TV", "2025-01-01", "2025-12-31", 100,
             dry_run=False, workers=1,
@@ -197,8 +197,8 @@ def test_query_no_results(runner, tmp_path):
 
 def _seed_extraction(db_path):
     """Seed a station, file, and extraction into the database for query tests."""
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
 
     conn = get_connection(db_path)
     queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
@@ -287,8 +287,8 @@ def test_contracts_command_no_results(runner, tmp_path):
 
 def _seed_contract(db_path):
     """Seed a station and contract into the database for contract query tests."""
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
 
     conn = get_connection(db_path)
     queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
@@ -373,8 +373,8 @@ def test_contracts_command_filter_candidate(runner, tmp_path):
 def test_extract_deduplicates_across_pages(runner, tmp_path):
     """Extract should produce one extraction per field per document, not per page."""
     from fpdf import FPDF
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
 
     # Create a 3-page PDF where every page has the same advertiser
     pdf = FPDF()
@@ -417,8 +417,8 @@ def test_extract_deduplicates_across_pages(runner, tmp_path):
 
 def _seed_line_items(db_path):
     """Seed station, file, contract, and line items for summary tests."""
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
 
     conn = get_connection(db_path)
     queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
@@ -499,9 +499,9 @@ def test_query_format_json_no_results(runner, tmp_path):
 
 def _seed_district_scenario(db_path):
     """Seed stations, contracts, and crosswalk for district CLI tests."""
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
-    from fcc_ca_ads.districts import insert_crosswalk
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+    from fcc_ad_tracker.districts import insert_crosswalk
 
     conn = get_connection(db_path)
     queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
@@ -556,8 +556,8 @@ def test_load_districts_command(runner, tmp_path):
     """))
 
     # Seed a station so auto-match has something to find
-    from fcc_ca_ads.db.connection import get_connection
-    from fcc_ca_ads.db import queries
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
     conn = get_connection(db_path)
     queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
     conn.close()
@@ -762,6 +762,73 @@ def test_summary_single_district_json(runner, tmp_path):
     data = json.loads(result.output)
     assert len(data) == 1
     assert data[0]["district"] == "CA-27"
+
+
+def test_cli_creates_jsonl_log(runner, tmp_path):
+    """CLI run should create a JSONL log file in data/logs/."""
+    db_path = tmp_path / "test.db"
+    log_dir = tmp_path / "logs"
+    result = runner.invoke(cli, ["--db", str(db_path), "--log-dir", str(log_dir), "status"])
+    assert result.exit_code == 0
+    log_files = list(log_dir.glob("*.jsonl"))
+    assert len(log_files) == 1
+    assert "status" in log_files[0].name
+
+
+def test_no_cache_prevents_cache_files(runner, tmp_path):
+    """--no-cache flag should prevent cache file creation."""
+    db_path = tmp_path / "test.db"
+    cache_dir = tmp_path / "cache"
+    log_dir = tmp_path / "logs"
+    result = runner.invoke(cli, [
+        "--db", str(db_path), "--log-dir", str(log_dir),
+        "--no-cache", "status",
+    ])
+    assert result.exit_code == 0
+    assert not cache_dir.exists()
+
+
+def test_quiet_suppresses_log_message(runner, tmp_path):
+    """--quiet should suppress 'Log: ...' message from stderr."""
+    db_path = tmp_path / "test.db"
+    log_dir = tmp_path / "logs"
+    result = runner.invoke(cli, [
+        "--db", str(db_path), "--log-dir", str(log_dir), "--quiet", "status",
+    ])
+    assert result.exit_code == 0
+    assert "Log:" not in result.output
+
+
+@patch("fcc_ad_tracker.download.download_pdf")
+def test_download_writes_log_events(mock_dl, runner, tmp_path):
+    """Download command should write events to the scratchpad log."""
+    db_path = str(tmp_path / "test.db")
+    log_dir = tmp_path / "logs"
+    _seed_station(db_path)
+
+    from unittest.mock import MagicMock, patch as _patch
+
+    client_mock = MagicMock()
+    client_mock.get_file_history.return_value = _fake_history(1)
+
+    call_count = {"n": 0}
+    def _unique_sha(_path):
+        call_count["n"] += 1
+        return f"sha-{call_count['n']}"
+
+    with _patch("fcc_ad_tracker.cli._make_client") as mock_make:
+        mock_make.return_value = client_mock
+        with _patch("fcc_ad_tracker.download.sha256_file", side_effect=_unique_sha):
+            result = runner.invoke(cli, [
+                "--db", db_path, "--log-dir", str(log_dir),
+                "download", "--station", "KABC-TV",
+            ])
+
+    assert result.exit_code == 0
+    log_files = list(log_dir.glob("*.jsonl"))
+    assert len(log_files) >= 1
+    log_text = log_files[0].read_text().strip()
+    assert len(log_text) > 0  # At least one event logged
 
 
 def test_summary_single_district_no_results(runner, tmp_path):

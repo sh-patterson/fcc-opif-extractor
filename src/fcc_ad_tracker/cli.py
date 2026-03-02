@@ -1,27 +1,35 @@
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import click
 
-from fcc_ca_ads.config import CA_TARGET_DMAS
-from fcc_ca_ads.client import OpifClient
-from fcc_ca_ads.db.connection import get_connection
-from fcc_ca_ads.db import queries
-from fcc_ca_ads.discover import discover_stations, save_stations
+from fcc_ad_tracker.config import DEFAULT_TARGET_DMAS, OpifConfig
+from fcc_ad_tracker.client import OpifClient
+from fcc_ad_tracker.db.connection import get_connection
+from fcc_ad_tracker.db import queries
+from fcc_ad_tracker.discover import discover_stations, save_stations
+from fcc_ad_tracker.scratchpad import Scratchpad
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_DB = Path("data/ads.db")
 DEFAULT_STATIONS = Path("data/stations.json")
 DEFAULT_RAW = Path("data/raw")
+DEFAULT_LOG_DIR = Path("data/logs")
+DEFAULT_CACHE_DIR = Path("data/cache")
 
 
 @click.group()
 @click.option("--db", type=click.Path(), default=str(DEFAULT_DB), help="SQLite database path")
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
+@click.option("--no-cache", is_flag=True, help="Disable API response cache")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress log path message")
+@click.option("--log-dir", type=click.Path(), default=None,
+              help="Directory for scratchpad logs (default: data/logs/)")
 @click.pass_context
-def cli(ctx, db, verbose):
-    """FCC California Political Ad Extraction CLI."""
+def cli(ctx, db, verbose, no_cache, quiet, log_dir):
+    """FCC Political Ad Tracker CLI."""
     logging.basicConfig(
         level=logging.DEBUG if verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
@@ -29,6 +37,32 @@ def cli(ctx, db, verbose):
     ctx.ensure_object(dict)
     ctx.obj["db_path"] = db
     ctx.obj["conn"] = get_connection(db)
+    ctx.obj["no_cache"] = no_cache
+    ctx.obj["quiet"] = quiet
+
+    # Scratchpad lifecycle — only when --log-dir is set
+    if log_dir is not None:
+        log_path = Path(log_dir)
+        cmd_name = ctx.invoked_subcommand or "cli"
+        ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        sp_path = log_path / f"{ts}_{cmd_name}.jsonl"
+        sp = Scratchpad(sp_path)
+        ctx.obj["scratchpad"] = sp
+
+        def _close_scratchpad():
+            sp.close()
+            if not quiet:
+                click.echo(f"Log: {sp_path}", err=True)
+
+        ctx.call_on_close(_close_scratchpad)
+
+
+def _make_client(ctx) -> OpifClient:
+    no_cache = ctx.obj.get("no_cache", False)
+    cache_dir = None if no_cache else DEFAULT_CACHE_DIR
+    config = OpifConfig(cache_dir=cache_dir)
+    sp = ctx.obj.get("scratchpad")
+    return OpifClient(config, scratchpad=sp)
 
 
 @cli.command()
@@ -58,8 +92,8 @@ def status(ctx):
 def discover(ctx, state, output):
     """Discover TV stations from FCC facility search."""
     conn = ctx.obj["conn"]
-    client = OpifClient()
-    stations = discover_stations(client, state=state, target_dmas=CA_TARGET_DMAS)
+    client = _make_client(ctx)
+    stations = discover_stations(client, state=state, target_dmas=DEFAULT_TARGET_DMAS)
     save_stations(stations, Path(output))
     for s in stations:
         queries.upsert_station(
@@ -74,7 +108,7 @@ def discover(ctx, state, output):
 @click.pass_context
 def load_stations_cmd(ctx, input_path):
     """Load stations from a JSON seed file into the database."""
-    from fcc_ca_ads.discover import load_stations
+    from fcc_ad_tracker.discover import load_stations
 
     conn = ctx.obj["conn"]
     stations = load_stations(Path(input_path))
@@ -100,7 +134,8 @@ def download(ctx, station, all_stations, since, until_date, max_files, dry_run, 
 
     db_path = ctx.obj["db_path"]
     conn = ctx.obj["conn"]
-    client = OpifClient()
+    client = _make_client(ctx)
+    scratchpad = ctx.obj.get("scratchpad")
     end = until_date or date.today().isoformat()
 
     if station:
@@ -111,6 +146,7 @@ def download(ctx, station, all_stations, since, until_date, max_files, dry_run, 
         count = _download_station(
             client, db_path, s["entity_id"], s["call_sign"],
             since, end, max_files, dry_run, workers,
+            scratchpad=scratchpad,
         )
         click.echo(f"{'Found' if dry_run else 'Downloaded'} {count} files for {station}")
     elif all_stations:
@@ -121,6 +157,7 @@ def download(ctx, station, all_stations, since, until_date, max_files, dry_run, 
                 count = _download_station(
                     client, db_path, s["entity_id"], s["call_sign"],
                     since, end, max_files, dry_run, workers,
+                    scratchpad=scratchpad,
                 )
                 total += count
         click.echo(
@@ -131,8 +168,8 @@ def download(ctx, station, all_stations, since, until_date, max_files, dry_run, 
 
 
 def _download_station(client, db_path, entity_id, call_sign, since, until, max_files,
-                      dry_run=False, workers=1):
-    from fcc_ca_ads.download import download_pdf, sha256_file
+                      dry_run=False, workers=1, scratchpad=None):
+    from fcc_ad_tracker.download import download_pdf, sha256_file
 
     conn = get_connection(db_path)
 
@@ -172,7 +209,7 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
     if dry_run or not items:
         return count
 
-    from fcc_ca_ads.classify import classify_file_type
+    from fcc_ad_tracker.classify import classify_file_type
 
     def _process_file(item):
         thread_conn = get_connection(db_path)
@@ -201,10 +238,21 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
             )
             queries.mark_downloaded(thread_conn, item["fid"], sha256=sha, local_path=str(dest))
             queries.set_file_type(thread_conn, item["fid"], file_type)
+            if scratchpad:
+                scratchpad.log(
+                    "download", file_id=item["fid"],
+                    call_sign=call_sign, sha256=sha, local_path=str(dest),
+                )
             click.echo(f"  {call_sign}: {item['fname']} [{file_type}]")
             return 1
         except Exception as exc:
             logger.error("Failed to download %s/%s: %s", call_sign, item["fname"], exc)
+            if scratchpad:
+                scratchpad.log(
+                    "error", operation="download",
+                    error_message=str(exc), file_id=item["fid"],
+                    call_sign=call_sign,
+                )
             return 0
 
     if workers > 1:
@@ -240,10 +288,21 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
             )
             queries.mark_downloaded(conn, item["fid"], sha256=sha, local_path=str(dest))
             queries.set_file_type(conn, item["fid"], file_type)
+            if scratchpad:
+                scratchpad.log(
+                    "download", file_id=item["fid"],
+                    call_sign=call_sign, sha256=sha, local_path=str(dest),
+                )
             count += 1
             click.echo(f"  {call_sign}: {item['fname']} [{file_type}]")
         except Exception as exc:
             logger.error("Failed to download %s/%s: %s", call_sign, item["fname"], exc)
+            if scratchpad:
+                scratchpad.log(
+                    "error", operation="download",
+                    error_message=str(exc), file_id=item["fid"],
+                    call_sign=call_sign,
+                )
     return count
 
 
@@ -251,13 +310,14 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
 @click.pass_context
 def extract(ctx):
     """Extract fields from downloaded PDFs."""
-    from fcc_ca_ads.extract import extract_pdf_text
-    from fcc_ca_ads.fields import extract_all_fields, FieldMatch, CONFIDENCE_ORDER
-    from fcc_ca_ads.contracts import extract_contract_meta
-    from fcc_ca_ads.line_items import parse_line_items
-    from fcc_ca_ads.classify import classify_file_type, is_terms_and_conditions
+    from fcc_ad_tracker.extract import extract_pdf_text
+    from fcc_ad_tracker.fields import extract_all_fields, FieldMatch, CONFIDENCE_ORDER
+    from fcc_ad_tracker.contracts import extract_contract_meta
+    from fcc_ad_tracker.line_items import parse_line_items
+    from fcc_ad_tracker.classify import classify_file_type, is_terms_and_conditions
 
     conn = ctx.obj["conn"]
+    scratchpad = ctx.obj.get("scratchpad")
     files = conn.execute(
         """
         SELECT f.* FROM files f
@@ -363,6 +423,18 @@ def extract(ctx):
                     )
 
             queries.mark_ocr_done(conn, f["file_id"], ocr_needed=result.ocr_used)
+            if scratchpad:
+                scratchpad.log(
+                    "extraction",
+                    file_id=f["file_id"],
+                    fields_found=list(best.keys()),
+                    contract_number=contract_num,
+                    line_items_count=sum(
+                        len(parse_line_items(p))
+                        for p in result.pages
+                        if not is_terms_and_conditions(p)
+                    ),
+                )
             count += 1
     click.echo(f"Extracted fields from {count} files")
 
@@ -709,7 +781,7 @@ DEFAULT_CROSSWALK = Path("data/downballot-cd-to-dma-2024.csv")
 @click.pass_context
 def load_districts_cmd(ctx, input_path):
     """Load district-to-DMA crosswalk from The Downballot CSV."""
-    from fcc_ca_ads.districts import load_crosswalk_csv, auto_match_markets, insert_crosswalk
+    from fcc_ad_tracker.districts import load_crosswalk_csv, auto_match_markets, insert_crosswalk
 
     conn = ctx.obj["conn"]
     rows = load_crosswalk_csv(input_path)
@@ -739,9 +811,9 @@ def map_dma_cmd(ctx, dma_name, fcc_market):
     """Manually map a DMA name to an FCC market string.
 
     For FCC's abbreviated/misspelled DMA names that can't auto-match.
-    Example: fcc-ca-ads map-dma "Sacramento-Stockton-Modesto" "SACRAMNTO-STKTON-MODESTO"
+    Example: fcc-ad-tracker map-dma "Sacramento-Stockton-Modesto" "SACRAMNTO-STKTON-MODESTO"
     """
-    from fcc_ca_ads.districts import update_market_mapping
+    from fcc_ad_tracker.districts import update_market_mapping
 
     conn = ctx.obj["conn"]
     updated = update_market_mapping(conn, dma_name, fcc_market)
