@@ -1,4 +1,4 @@
-from fcc_ca_ads.extract import (
+from fcc_ad_tracker.extract import (
     ExtractionResult,
     extract_pdf_text,
     extract_text_pages,

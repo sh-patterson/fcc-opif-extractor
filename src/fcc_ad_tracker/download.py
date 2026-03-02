@@ -2,9 +2,7 @@ import hashlib
 import logging
 from pathlib import Path
 
-import requests
-
-from fcc_ca_ads.client import OpifClient
+from fcc_ad_tracker.client import OpifClient
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +43,7 @@ def sha256_file(path: Path) -> str:
 def download_pdf(client: OpifClient, folder_id: str, file_manager_id: str, dest: Path) -> Path:
     """Download a PDF via the client's download URL resolution. Returns dest path."""
     url = client.get_download_url(folder_id, file_manager_id)
-    resp = requests.get(url, timeout=60)
-    resp.raise_for_status()
+    content = client.download_bytes(url, timeout=60)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(resp.content)
+    dest.write_bytes(content)
     return dest

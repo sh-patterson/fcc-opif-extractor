@@ -5,14 +5,14 @@ import sqlite3
 import pytest
 import responses
 
-from fcc_ca_ads.config import OpifConfig
-from fcc_ca_ads.client import OpifClient
-from fcc_ca_ads.db.connection import init_schema
-from fcc_ca_ads.db import queries
-from fcc_ca_ads.discover import discover_stations
-from fcc_ca_ads.download import download_pdf, find_political_folder, walk_folder_tree
-from fcc_ca_ads.extract import extract_pdf_text
-from fcc_ca_ads.fields import extract_all_fields
+from fcc_ad_tracker.config import OpifConfig
+from fcc_ad_tracker.client import OpifClient
+from fcc_ad_tracker.db.connection import init_schema
+from fcc_ad_tracker.db import queries
+from fcc_ad_tracker.discover import discover_stations
+from fcc_ad_tracker.download import download_pdf, find_political_folder, walk_folder_tree
+from fcc_ad_tracker.extract import extract_pdf_text
+from fcc_ad_tracker.fields import extract_all_fields
 
 
 @pytest.fixture

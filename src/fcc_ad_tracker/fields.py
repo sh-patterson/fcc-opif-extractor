@@ -75,6 +75,36 @@ def extract_candidate(text: str, page: int = 0) -> list[FieldMatch]:
     return _sort_by_confidence(matches)
 
 
+def extract_office_sought(text: str, page: int = 0) -> list[FieldMatch]:
+    """Extract office sought/race type from text."""
+    matches: list[FieldMatch] = []
+
+    # High: labeled "Office:" / "Office Sought:"
+    for m in re.finditer(r"(?im)^\s*office(?:\s+sought)?\s*:\s*(.+)$", text):
+        val = re.sub(r"\s+", " ", m.group(1)).strip()
+        if val:
+            matches.append(FieldMatch("office_sought", val, "high", page))
+
+    # High: common committee naming convention "X FOR OFFICE"
+    for m in re.finditer(
+        r"(?i)\bfor\s+("
+        r"u\.?\s*s\.?\s+senate|"
+        r"u\.?\s*s\.?\s+house|"
+        r"governor|lt\.?\s*governor|"
+        r"attorney\s+general|"
+        r"secretary\s+of\s+state|"
+        r"treasurer|controller|"
+        r"senate|assembly|congress|legislature|president|mayor"
+        r")\b",
+        text,
+    ):
+        val = re.sub(r"\s+", " ", m.group(1)).strip().upper()
+        val = val.replace(".", "")
+        matches.append(FieldMatch("office_sought", val, "high", page))
+
+    return _sort_by_confidence(matches)
+
+
 def extract_total(text: str, page: int = 0) -> list[FieldMatch]:
     """Extract total dollar amount from text with confidence scoring."""
     matches: list[FieldMatch] = []
@@ -148,6 +178,7 @@ def extract_all_fields(text: str, page: int = 0) -> list[FieldMatch]:
     all_matches: list[FieldMatch] = []
     all_matches.extend(extract_advertiser(text, page))
     all_matches.extend(extract_candidate(text, page))
+    all_matches.extend(extract_office_sought(text, page))
     all_matches.extend(extract_total(text, page))
     all_matches.extend(extract_flight_dates(text, page))
 

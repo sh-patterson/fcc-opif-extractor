@@ -3,26 +3,29 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fcc-ca-ads"
+name = "fcc-ad-tracker"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.31",
     "click>=8.1",
     "pdfplumber>=0.10",
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
 ocr = ["ocrmypdf>=16.0"]
+gemini = ["google-genai>=1.0", "pydantic>=2.0"]
 dev = [
     "pytest>=8.0",
     "responses>=0.25",
     "fpdf2>=2.7",
+    "pydantic>=2.0",
     "ruff>=0.3",
 ]
 
 [project.scripts]
-fcc-ca-ads = "fcc_ca_ads.cli:cli"
+fcc-ad-tracker = "fcc_ad_tracker.cli:cli"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

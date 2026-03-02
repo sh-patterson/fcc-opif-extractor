@@ -9,6 +9,11 @@ build/
 # Virtual environment
 .venv/
 
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Testing / linting
 .pytest_cache/
 .ruff_cache/
@@ -16,6 +21,9 @@ build/
 # Project data (downloaded PDFs and SQLite DB)
 data/raw/
 data/ads.db
+data/cache/
+data/e2e/
+data/logs/
 
 # Keep data/stations.json tracked (public FCC station seed data)
 

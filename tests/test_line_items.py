@@ -1,7 +1,8 @@
 """Tests for line-item extraction from contract PDFs."""
 
-from fcc_ca_ads.line_items import (
+from fcc_ad_tracker.line_items import (
     LineItem,
+    count_line_item_candidates,
     parse_line_items,
     parse_week_breakdowns,
 )
@@ -31,6 +32,37 @@ WEEK_BREAKDOWN_TEXT = """\
 Week: 03/03/26 03/08/26 -1111-- 5 $500
 Week: 03/03/26 03/09/26 1111111 7 $3,000
 Week: 03/10/26 03/14/26 -1111-- 5 $500
+"""
+
+# Real KABC format — compact time slots (4p-5p), no colon in time, duplicate time column
+KABC_REAL_TEXT = """\
+N 12 KABC 03/03/26 03/09/26 Eyewitness News 4p-5p 4p-5p :15/:15 BK 12 $12,000.00
+N 15 KABC 03/03/26 03/09/26 Eyewitness News 5p-6p 5p-6p :30 NM 10 $15,000.00
+N 19 KABC 03/03/26 03/09/26 Eyewitness News 6p-630p 6p-630p :30 NM 7 $17,500.00
+"""
+
+# Real KCBS format — has PCode (CDR) before rate_type, extra fields
+KCBS_REAL_TEXT = """\
+N 10 KCBS 05/25/26 06/02/26 Prime Access M-F 1b 728p-8p :30 CDR NM 7 $14,000.00
+"""
+
+AMPM_TEXT = """\
+N 21 KABC 03/03/26 03/07/26 Morning News 5:00AM-5:30AM :30 $1,000 ROS 4 $4,000
+"""
+
+VARIOUS_UPPER_TEXT = """\
+N 22 KABC 03/03/26 03/07/26 Midday News Various :30 $900 NM 3 $2,700
+"""
+
+# Space before AM/PM (real KABC format: "9:00 PM-11:01 PM")
+SPACE_AMPM_TEXT = """\
+N 1 KABC 03/03/26 03/06/26 20/20 9:00 PM-11:01 PM :30 NM 1 $6,000.00
+"""
+
+# No AM/PM on start time (real format: "3-330p", "7-8a")
+NO_START_AMPM_TEXT = """\
+N 11 KABC 03/03/26 03/09/26 Eyewitness News 3-330p :30 NM 6 $4,800.00
+N 39 KABC 03/03/26 03/09/26 GMA M-F 7-8a GMA M-F 7-8a :30 NM 10 $15,000.00
 """
 
 # Full page with mixed content
@@ -101,6 +133,72 @@ class TestParseLineItems:
         items = parse_line_items(FULL_PAGE_TEXT)
         assert len(items) == 3
 
+    def test_kabc_real_format(self):
+        """KABC lines with compact time (4p-5p), duplicate time column."""
+        items = parse_line_items(KABC_REAL_TEXT)
+        assert len(items) == 3
+
+        item = items[0]
+        assert item.line_number == 12
+        assert item.channel == "KABC"
+        assert item.start_date == "03/03/26"
+        assert item.end_date == "03/09/26"
+        assert "Eyewitness News" in item.show_name
+        assert item.spot_length == ":15/:15"
+        assert item.rate_type == "BK"
+        assert item.spots == 12
+        assert item.line_total == 12000.0
+
+    def test_kabc_real_format_no_minutes_time(self):
+        """Time slot like '6p-630p' without colons or minutes."""
+        items = parse_line_items(KABC_REAL_TEXT)
+        item = items[2]  # 6p-630p line
+        assert item.line_number == 19
+        assert item.spots == 7
+        assert item.line_total == 17500.0
+
+    def test_kcbs_real_format(self):
+        """KCBS line with PCode (CDR) before rate_type."""
+        items = parse_line_items(KCBS_REAL_TEXT)
+        assert len(items) == 1
+
+        item = items[0]
+        assert item.line_number == 10
+        assert item.channel == "KCBS"
+        assert item.start_date == "05/25/26"
+        assert item.end_date == "06/02/26"
+        assert "Prime Access" in item.show_name
+        assert item.spot_length == ":30"
+        assert item.rate_type == "NM"
+        assert item.spots == 7
+        assert item.line_total == 14000.0
+
+    def test_parses_am_pm_and_broader_rate_type(self):
+        items = parse_line_items(AMPM_TEXT)
+        assert len(items) == 1
+        assert items[0].time_slot == "5:00AM-5:30AM"
+        assert items[0].rate_type == "ROS"
+
+    def test_parses_capitalized_various(self):
+        items = parse_line_items(VARIOUS_UPPER_TEXT)
+        assert len(items) == 1
+        assert items[0].time_slot == "Various"
+
+    def test_parses_space_before_ampm(self):
+        items = parse_line_items(SPACE_AMPM_TEXT)
+        assert len(items) == 1
+        assert items[0].time_slot == "9:00 PM-11:01 PM"
+        assert items[0].line_total == 6000.0
+
+    def test_parses_no_start_ampm(self):
+        items = parse_line_items(NO_START_AMPM_TEXT)
+        assert len(items) == 2
+        assert items[0].time_slot == "3-330p"
+        assert items[0].spots == 6
+        # WideOrbit duplicates show+time; non-greedy show captures first occurrence
+        assert items[1].time_slot == "7-8a"
+        assert items[1].spots == 10
+
     def test_line_item_dataclass(self):
         item = LineItem(
             line_number=1,
@@ -141,3 +239,8 @@ class TestParseWeekBreakdowns:
 
     def test_empty_text(self):
         assert parse_week_breakdowns("") == []
+
+
+def test_count_line_item_candidates():
+    text = "N 1 KABC ...\nNot a line\nN 2 KCBS ..."
+    assert count_line_item_candidates(text) == 2

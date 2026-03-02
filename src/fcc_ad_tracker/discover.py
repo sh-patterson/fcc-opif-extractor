@@ -3,9 +3,17 @@ import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from fcc_ca_ads.client import OpifClient
+from fcc_ad_tracker.client import OpifClient
 
 logger = logging.getLogger(__name__)
+
+US_STATE_CODES = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+]
 
 
 @dataclass(frozen=True)
@@ -32,7 +40,10 @@ class Station:
     @property
     def is_full_power(self) -> bool:
         svc = self.service_type.lower()
-        return "full" in svc and ("service" in svc or "power" in svc)
+        return (
+            ("full" in svc and ("service" in svc or "power" in svc))
+            or ("class" in svc and "a" in svc)
+        )
 
 
 def _extract_facilities(data: dict) -> list[dict]:
@@ -68,6 +79,34 @@ def discover_stations(
         len(stations),
         state,
         len(facilities),
+    )
+    return stations
+
+
+def discover_stations_by_dmas(
+    client: OpifClient,
+    *,
+    target_dmas: list[str],
+    states: list[str] | None = None,
+    full_power_only: bool = True,
+) -> list[Station]:
+    """Discover stations in target DMAs across many states to handle cross-state markets."""
+    states_to_search = states or US_STATE_CODES
+    by_entity: dict[str, Station] = {}
+    for state in states_to_search:
+        for station in discover_stations(
+            client,
+            state=state,
+            target_dmas=target_dmas,
+            full_power_only=full_power_only,
+        ):
+            by_entity[station.entity_id] = station
+    stations = sorted(by_entity.values(), key=lambda s: (s.market, s.call_sign))
+    logger.info(
+        "Discovered %d stations across %d states for DMAs=%s",
+        len(stations),
+        len(states_to_search),
+        ",".join(target_dmas),
     )
     return stations
 

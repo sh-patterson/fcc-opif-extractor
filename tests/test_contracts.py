@@ -1,6 +1,6 @@
 """Tests for contract-level metadata extraction."""
 
-from fcc_ca_ads.contracts import (
+from fcc_ad_tracker.contracts import (
     ContractMeta,
     extract_contract_number,
     extract_revision,
@@ -51,6 +51,19 @@ SUMMARY_TEXT_NO_COMMISSION = """\
 Totals                       45    $135,000.00
 """
 
+# WideOrbit format — contract number on separate line from label
+WIDEORBIT_HEADER = """\
+Contract / Revision Alt Order #
+KABC
+424880 / WOC15574999
+Advertiser: TOM STEYER FOR GOVERNOR 2026
+Agency: BUYER'S EDGE MEDIA LLC
+Contract Dates Estimate # Ext. Opp. ID
+05/25/26 - 06/07/26
+Demographic
+Adults 35+
+"""
+
 REVISION_TEXTS = {
     "original": "Contract: 424082-New",
     "rev1": "Contract: 424082-Rev 1",
@@ -87,6 +100,10 @@ class TestExtractContractNumber:
     def test_underscore_style(self):
         result = extract_contract_number("TomSteyer_1474031_Rev1")
         assert result == "1474031"
+
+    def test_wideorbit_number_on_separate_line(self):
+        result = extract_contract_number(WIDEORBIT_HEADER)
+        assert result == "424880"
 
     def test_no_contract_number(self):
         result = extract_contract_number("Some random text with no contract")
@@ -138,6 +155,13 @@ class TestExtractContractDates:
         assert start == "03/01/26"
         assert end == "03/15/26"
 
+    def test_wideorbit_dates_on_separate_line(self):
+        result = extract_contract_dates(WIDEORBIT_HEADER)
+        assert result is not None
+        start, end = result
+        assert start == "05/25/26"
+        assert end == "06/07/26"
+
     def test_no_dates(self):
         result = extract_contract_dates("No dates here")
         assert result is None
@@ -165,6 +189,10 @@ class TestExtractDemographics:
     def test_hh_demographic(self):
         result = extract_demographics(HEADER_TEXT_ALT)
         assert result == "HH"
+
+    def test_wideorbit_demographic_on_separate_line(self):
+        result = extract_demographics(WIDEORBIT_HEADER)
+        assert result == "Adults 35+"
 
     def test_no_demographic(self):
         result = extract_demographics("No demo here")

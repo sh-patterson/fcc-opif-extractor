@@ -6,9 +6,9 @@ import textwrap
 
 import pytest
 
-from fcc_ca_ads.db.connection import init_schema
-from fcc_ca_ads.db import queries
-from fcc_ca_ads.districts import (
+from fcc_ad_tracker.db.connection import init_schema
+from fcc_ad_tracker.db import queries
+from fcc_ad_tracker.districts import (
     auto_match_markets,
     insert_crosswalk,
     load_crosswalk_csv,

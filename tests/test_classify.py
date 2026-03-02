@@ -1,6 +1,6 @@
 """Tests for file type classification and filename parsing."""
 
-from fcc_ca_ads.classify import (
+from fcc_ad_tracker.classify import (
     classify_file_type,
     parse_contract_number_from_filename,
     parse_revision_from_filename,

@@ -3,9 +3,15 @@ from pathlib import Path
 
 import responses
 
-from fcc_ca_ads.config import OpifConfig, CA_TARGET_DMAS
-from fcc_ca_ads.client import OpifClient
-from fcc_ca_ads.discover import Station, discover_stations, save_stations, load_stations
+from fcc_ad_tracker.config import OpifConfig, DEFAULT_TARGET_DMAS
+from fcc_ad_tracker.client import OpifClient
+from fcc_ad_tracker.discover import (
+    Station,
+    discover_stations,
+    discover_stations_by_dmas,
+    save_stations,
+    load_stations,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -37,6 +43,18 @@ def test_station_low_power_excluded():
     assert station.is_full_power is False
 
 
+def test_station_class_a_included():
+    facility = {
+        "id": 12345,
+        "callSign": "KXYZ-CA",
+        "community": {"city": "ANYTOWN", "state": "CA"},
+        "nielsenDma": "LOS ANGELES",
+        "service": "Class A",
+    }
+    station = Station.from_facility(facility)
+    assert station.is_full_power is True
+
+
 @responses.activate
 def test_discover_stations_filters_by_dma():
     cfg = OpifConfig(rate_limit_delay=0.0)
@@ -48,7 +66,7 @@ def test_discover_stations_filters_by_dma():
         json=fixture,
         status=200,
     )
-    stations = discover_stations(client, state="CA", target_dmas=CA_TARGET_DMAS)
+    stations = discover_stations(client, state="CA", target_dmas=DEFAULT_TARGET_DMAS)
     # Should include LA, SF, Sacramento stations but not Bakersfield
     call_signs = [s.call_sign for s in stations]
     assert "KABC-TV" in call_signs
@@ -75,6 +93,52 @@ def test_discover_stations_full_power_only():
     )
     call_signs = [s.call_sign for s in stations]
     assert "K99ZZ-LP" not in call_signs
+
+
+@responses.activate
+def test_discover_stations_by_dmas_across_states():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    ca_fixture = json.loads((FIXTURES / "facility_search_ca.json").read_text())
+    nv_fixture = {
+        "status": "OK",
+        "results": {
+            "searchList": [
+                {
+                    "searchType": "tv",
+                    "facilityList": [
+                        {
+                            "id": 77777,
+                            "callSign": "KREN-TV",
+                            "community": {"city": "RENO", "state": "NV"},
+                            "nielsenDma": "LOS ANGELES",
+                            "service": "Full Service",
+                        }
+                    ],
+                }
+            ]
+        },
+    }
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        json=ca_fixture,
+        status=200,
+    )
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/service/tv/facility/search/NV.json",
+        json=nv_fixture,
+        status=200,
+    )
+    stations = discover_stations_by_dmas(
+        client,
+        target_dmas=["LOS ANGELES"],
+        states=["CA", "NV"],
+    )
+    call_signs = [s.call_sign for s in stations]
+    assert "KABC-TV" in call_signs
+    assert "KREN-TV" in call_signs
 
 
 def test_save_and_load_stations(tmp_path):

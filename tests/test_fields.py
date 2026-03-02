@@ -1,7 +1,8 @@
-from fcc_ca_ads.fields import (
+from fcc_ad_tracker.fields import (
     FieldMatch,
     extract_advertiser,
     extract_candidate,
+    extract_office_sought,
     extract_total,
     extract_flight_dates,
     extract_all_fields,
@@ -58,6 +59,7 @@ def test_extract_all_fields_returns_all():
     field_names = {m.field_name for m in matches}
     assert "advertiser" in field_names
     assert "candidate" in field_names
+    assert "office_sought" in field_names
     assert "total" in field_names
     assert "flight_dates" in field_names
 
@@ -93,6 +95,20 @@ def test_extract_candidate_contextual():
     assert len(matches) >= 1
     assert matches[0].value == "Jane Smith"
     assert matches[0].confidence == "medium"
+
+
+def test_extract_office_sought_labeled():
+    matches = extract_office_sought(SAMPLE_TEXT)
+    assert len(matches) >= 1
+    assert matches[0].field_name == "office_sought"
+    assert "U.S. House" in matches[0].value
+
+
+def test_extract_office_sought_from_for_pattern():
+    text = "TOM STEYER FOR GOVERNOR 2026"
+    matches = extract_office_sought(text)
+    assert len(matches) >= 1
+    assert matches[0].value == "GOVERNOR"
 
 
 def test_extract_advertiser_ordered_by():

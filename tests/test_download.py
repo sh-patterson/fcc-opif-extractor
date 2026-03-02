@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import responses
 
-from fcc_ca_ads.download import (
+from fcc_ad_tracker.download import (
     download_pdf,
     find_political_folder,
     sha256_file,
@@ -90,10 +90,11 @@ def test_download_pdf(tmp_path):
     download_url = "https://files.fcc.gov/some/path.pdf"
     client.get_download_url.return_value = download_url
     pdf_content = b"%PDF-1.4 fake pdf content"
-    responses.add(responses.GET, download_url, body=pdf_content, status=200)
+    client.download_bytes.return_value = pdf_content
 
     dest = tmp_path / "output.pdf"
     result = download_pdf(client, "folder-abc", "file-123", dest)
     assert result == dest
     assert dest.read_bytes() == pdf_content
     client.get_download_url.assert_called_once_with("folder-abc", "file-123")
+    client.download_bytes.assert_called_once_with(download_url, timeout=60)

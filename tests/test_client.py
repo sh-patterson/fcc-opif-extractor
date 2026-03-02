@@ -126,6 +126,7 @@ def test_rate_limiter_is_thread_safe():
 
     assert hasattr(client, "_rate_lock")
     assert isinstance(client._rate_lock, type(threading.Lock()))
+    assert hasattr(client, "_session_lock")
 
     # Hammer _rate_limit from multiple threads to verify no race
     errors = []
@@ -256,3 +257,114 @@ def test_file_history_empty():
     )
     result = client.get_file_history("25452", "2026-01-01", "2026-03-01")
     assert result == []
+
+
+@responses.activate
+def test_file_history_raises_on_unexpected_error_shape():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/manager/file/history.json",
+        json={"status": "error", "message": "Internal server error"},
+        status=200,
+    )
+    import pytest
+    with pytest.raises(ValueError):
+        client.get_file_history("25452", "2026-01-01", "2026-03-01")
+
+
+@responses.activate
+def test_file_history_raises_on_unexpected_json_shape():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/manager/file/history.json",
+        json={"foo": "bar"},
+        status=200,
+    )
+    import pytest
+    with pytest.raises(ValueError):
+        client.get_file_history("25452", "2026-01-01", "2026-03-01")
+
+
+@responses.activate
+def test_download_bytes_uses_client_session():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    url = "https://files.fcc.gov/some/path.pdf"
+    payload = b"%PDF-1.4 test payload"
+    responses.add(responses.GET, url, body=payload, status=200)
+    result = client.download_bytes(url, timeout=5)
+    assert result == payload
+
+
+@responses.activate
+def test_search_political_files_response_docs_shape():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    responses.add(
+        responses.GET,
+        "https://www.fcc.gov/search/api",
+        json={"response": {"docs": [{"id": "f1", "fileName": "a.pdf"}]}},
+        status=200,
+    )
+    rows = client.search_political_files(query="steyer", campaign_year="2026")
+    assert len(rows) == 1
+    assert rows[0]["id"] == "f1"
+
+
+@responses.activate
+def test_search_political_files_raises_on_bad_shape():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    responses.add(
+        responses.GET,
+        "https://www.fcc.gov/search/api",
+        json={"foo": "bar"},
+        status=200,
+    )
+    import pytest
+    with pytest.raises(ValueError):
+        client.search_political_files()
+
+
+@responses.activate
+def test_get_station_rss():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    xml = "<rss><channel><item><guid>x</guid></item></channel></rss>"
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/tv-profile/KABC-TV/rss/",
+        body=xml,
+        status=200,
+    )
+    result = client.get_station_rss("KABC-TV")
+    assert "<rss>" in result
+
+
+@responses.activate
+def test_get_station_rss_falls_back_to_www_host():
+    cfg = OpifConfig(rate_limit_delay=0.0)
+    client = OpifClient(cfg)
+    xml = "<rss><channel><item><guid>x</guid></item></channel></rss>"
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/tv-profile/KABC-TV/rss/",
+        status=403,
+    )
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/tv-profile/KABC-TV/rss",
+        status=404,
+    )
+    responses.add(
+        responses.GET,
+        "https://www.fcc.gov/tv-profile/KABC-TV/rss/",
+        body=xml,
+        status=200,
+    )
+    result = client.get_station_rss("KABC-TV")
+    assert "<rss>" in result

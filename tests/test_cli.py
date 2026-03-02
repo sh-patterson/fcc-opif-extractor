@@ -38,11 +38,127 @@ def test_discover_command(mock_save, mock_discover, runner, tmp_path):
     mock_discover.assert_called_once()
 
 
+@patch("fcc_ad_tracker.cli.discover_stations")
+@patch("fcc_ad_tracker.cli.save_stations")
+def test_discover_command_empty_uses_local_fallback(mock_save, mock_discover, runner, tmp_path):
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    mock_discover.return_value = []
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service")
+    conn.close()
+
+    result = runner.invoke(cli, ["--db", str(db_path), "discover"])
+    assert result.exit_code == 0
+    assert "Warning: FCC facility search returned 0 stations" in result.output
+    assert "Using 1 stations already present in local DB as fallback" in result.output
+    assert "Discovered 1 stations" in result.output
+    mock_discover.assert_called_once()
+    mock_save.assert_called_once()
+
+
+@patch("fcc_ad_tracker.cli.discover_stations_by_dmas")
+@patch("fcc_ad_tracker.cli.save_stations")
+def test_discover_command_cross_state_dma(mock_save, mock_discover_xstate, runner, tmp_path):
+    mock_discover_xstate.return_value = [
+        Station("1", "KABC-TV", "LOS ANGELES", "LOS ANGELES", "CA", "Full Service"),
+        Station("2", "KREN-TV", "LOS ANGELES", "RENO", "NV", "Full Service"),
+    ]
+    db_path = tmp_path / "test.db"
+    result = runner.invoke(
+        cli,
+        ["--db", str(db_path), "discover", "--cross-state-dma"],
+    )
+    assert result.exit_code == 0
+    assert "Discovered 2 stations" in result.output
+    mock_discover_xstate.assert_called_once()
+
+
 def test_download_help_has_workers(runner, tmp_path):
     db_path = tmp_path / "test.db"
     result = runner.invoke(cli, ["--db", str(db_path), "download", "--help"])
     assert result.exit_code == 0
     assert "--workers" in result.output
+
+
+def test_rss_poll_and_list_commands(runner, tmp_path):
+    from unittest.mock import MagicMock, patch as _patch
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    conn.close()
+
+    client = MagicMock()
+    client.get_station_rss.return_value = (
+        "<rss><channel>"
+        "<item><title>A</title><link>https://x/1</link><guid>g1</guid>"
+        "<pubDate>Mon, 01 Mar 2026 12:00:00 GMT</pubDate></item>"
+        "<item><title>B</title><link>https://x/2</link><guid>g2</guid>"
+        "<pubDate>Mon, 01 Mar 2026 13:00:00 GMT</pubDate></item>"
+        "</channel></rss>"
+    )
+    with _patch("fcc_ad_tracker.cli._make_client", return_value=client):
+        result = runner.invoke(
+            cli,
+            ["--db", str(db_path), "rss-poll", "--station", "KABC-TV"],
+        )
+    assert result.exit_code == 0
+    assert "2 new" in result.output
+
+    # Poll again should dedupe by guid.
+    with _patch("fcc_ad_tracker.cli._make_client", return_value=client):
+        result = runner.invoke(
+            cli,
+            ["--db", str(db_path), "rss-poll", "--station", "KABC-TV"],
+        )
+    assert result.exit_code == 0
+    assert "0 new" in result.output
+
+    result = runner.invoke(
+        cli,
+        ["--db", str(db_path), "rss-list", "--station", "KABC-TV", "--limit", "10"],
+    )
+    assert result.exit_code == 0
+    assert "KABC-TV" in result.output
+
+
+def test_rss_sync_triggers_download(runner, tmp_path):
+    from unittest.mock import MagicMock, patch as _patch
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    conn.close()
+
+    client = MagicMock()
+    client.get_station_rss.return_value = (
+        "<rss><channel>"
+        "<item><title>A</title><link>https://x/1</link><guid>g1</guid>"
+        "<pubDate>Mon, 01 Mar 2026 12:00:00 GMT</pubDate></item>"
+        "</channel></rss>"
+    )
+    with _patch("fcc_ad_tracker.cli._make_client", return_value=client), _patch(
+        "fcc_ad_tracker.cli._download_station", return_value=3
+    ) as mock_dl:
+        result = runner.invoke(
+            cli,
+            [
+                "--db", str(db_path),
+                "rss-sync",
+                "--station", "KABC-TV",
+                "--no-run-extract",
+            ],
+        )
+    assert result.exit_code == 0
+    assert "downloaded 3 files" in result.output
+    mock_dl.assert_called_once()
 
 
 def _seed_station(db_path, call_sign="KABC-TV", entity_id="E001"):
@@ -167,6 +283,37 @@ def test_download_sha256_dedup(mock_dl, runner, tmp_path):
     assert count == 1  # Only first file kept, rest deduped
 
 
+def test_download_station_paginates_history(runner, tmp_path):
+    """_download_station should request additional history pages for busy stations."""
+    from fcc_ad_tracker.cli import _download_station
+    from unittest.mock import MagicMock
+
+    db_path = str(tmp_path / "test.db")
+    _seed_station(db_path)
+
+    page1 = _fake_history(100)
+    page2 = _fake_history(50)
+    # Make file IDs unique across pages.
+    for i, row in enumerate(page2):
+        row["file_id"] = f"F1{i:02d}"
+        row["file_manager_id"] = f"FM1{i:02d}"
+
+    client = MagicMock()
+    client.get_file_history.side_effect = [page1, page2]
+
+    count = _download_station(
+        client, db_path, "E001", "KABC-TV", "2025-01-01", "2025-12-31", 200,
+        dry_run=True, workers=1,
+    )
+
+    assert count == 150
+    assert client.get_file_history.call_count == 2
+    first = client.get_file_history.call_args_list[0].kwargs
+    second = client.get_file_history.call_args_list[1].kwargs
+    assert first["offset"] == 0
+    assert second["offset"] == 100
+
+
 def test_download_no_station(runner, tmp_path):
     db_path = tmp_path / "test.db"
     result = runner.invoke(cli, ["--db", str(db_path), "download"])
@@ -183,9 +330,84 @@ def test_download_station_not_found(runner, tmp_path):
 
 def test_extract_command(runner, tmp_path):
     db_path = tmp_path / "test.db"
-    result = runner.invoke(cli, ["--db", str(db_path), "extract"])
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
     assert result.exit_code == 0
     assert "Extracted fields from 0 files" in result.output
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_continues_when_one_file_crashes(mock_extract, runner, tmp_path):
+    from types import SimpleNamespace
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    p1 = tmp_path / "bad.pdf"
+    p2 = tmp_path / "good.pdf"
+    p1.write_bytes(b"%PDF-1.4")
+    p2.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="bad.pdf", folder_id="FD001", file_size=1000, folder_path="/Political Files/2025",
+    )
+    queries.upsert_file(
+        conn, file_id="F002", entity_id="E001", file_manager_id="FM002",
+        file_name="good.pdf", folder_id="FD001", file_size=1000, folder_path="/Political Files/2025",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(p1))
+    queries.mark_downloaded(conn, "F002", sha256="sha-2", local_path=str(p2))
+    conn.close()
+
+    mock_extract.side_effect = [
+        RuntimeError("corrupt pdf"),
+        SimpleNamespace(pages=[""], ocr_used=False),
+    ]
+
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
+    assert result.exit_code == 0
+    assert "Extracted fields from 1 files" in result.output
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_skips_done_files_unless_reextract(mock_extract, runner, tmp_path):
+    from types import SimpleNamespace
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    p1 = tmp_path / "done.pdf"
+    p2 = tmp_path / "pending.pdf"
+    p1.write_bytes(b"%PDF-1.4")
+    p2.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="done.pdf", folder_id="FD001", file_size=1000, folder_path="/Political Files/2025",
+    )
+    queries.upsert_file(
+        conn, file_id="F002", entity_id="E001", file_manager_id="FM002",
+        file_name="pending.pdf", folder_id="FD001", file_size=1000, folder_path="/Political Files/2025",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(p1))
+    queries.mark_downloaded(conn, "F002", sha256="sha-2", local_path=str(p2))
+    queries.set_extraction_status(conn, "F001", "done")
+    conn.close()
+
+    mock_extract.return_value = SimpleNamespace(pages=[""], ocr_used=False)
+
+    result = runner.invoke(cli, ["--db", str(db_path), "extract"])
+    assert result.exit_code == 0
+    assert mock_extract.call_count == 1
+
+    mock_extract.reset_mock()
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--reextract", "--no-gemini"])
+    assert result.exit_code == 0
+    assert mock_extract.call_count == 2
 
 
 def test_query_no_results(runner, tmp_path):
@@ -193,6 +415,179 @@ def test_query_no_results(runner, tmp_path):
     result = runner.invoke(cli, ["--db", str(db_path), "query", "--candidate", "Nobody"])
     assert result.exit_code == 0
     assert "No results found" in result.output
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_populates_nab_forms(mock_extract, runner, tmp_path):
+    from types import SimpleNamespace
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    p1 = tmp_path / "nab.pdf"
+    p1.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="NAB_Form_PB-18.pdf", folder_id="FD001", file_size=1000,
+        folder_path="/Political Files/2025",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(p1))
+    conn.close()
+
+    mock_extract.return_value = SimpleNamespace(
+        pages=[
+            "NAB FORM PB-18\nCandidate Name: Tom Steyer\nOffice Sought: Governor\n"
+            "Party Affiliation: Democratic\nState Office: Statewide"
+        ],
+        ocr_used=False,
+    )
+
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
+    assert result.exit_code == 0
+
+    conn = get_connection(db_path)
+    f = conn.execute("SELECT extraction_status FROM files WHERE file_id='F001'").fetchone()
+    conn.close()
+    assert f["extraction_status"] == "not_applicable"
+
+    result = runner.invoke(cli, ["--db", str(db_path), "nab", "--candidate", "Steyer"])
+    assert result.exit_code == 0
+    assert "PB-18" in result.output
+    assert "Tom Steyer" in result.output
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_marks_no_line_items_status(mock_extract, runner, tmp_path):
+    from types import SimpleNamespace
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    p1 = tmp_path / "generic.pdf"
+    p1.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="cover_letter.pdf", folder_id="FD001", file_size=1000,
+        folder_path="/Political Files/2025",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(p1))
+    conn.close()
+
+    mock_extract.return_value = SimpleNamespace(pages=["simple cover letter text"], ocr_used=False)
+
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
+    assert result.exit_code == 0
+
+    conn = get_connection(db_path)
+    f = conn.execute("SELECT extraction_status FROM files WHERE file_id='F001'").fetchone()
+    conn.close()
+    assert f["extraction_status"] == "no_line_items"
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_autolinks_candidate_id(mock_extract, runner, tmp_path):
+    from types import SimpleNamespace
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    p1 = tmp_path / "contract.pdf"
+    p1.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="424082-New.pdf", folder_id="FD001", file_size=1000,
+        folder_path="/Political Files/2025",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(p1))
+    conn.close()
+
+    mock_extract.return_value = SimpleNamespace(
+        pages=[
+            "Contract: 424082\nAdvertiser: TOM STEYER FOR GOVERNOR 2026\n"
+            "Candidate: Tom Steyer\nOffice: Governor\n"
+        ],
+        ocr_used=False,
+    )
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
+    assert result.exit_code == 0
+
+    conn = get_connection(db_path)
+    c = conn.execute("SELECT * FROM contracts WHERE contract_id='E001:424082'").fetchone()
+    assert c is not None
+    assert c["candidate_id"] is not None
+
+
+def test_normalize_candidate_and_list_commands(runner, tmp_path):
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_contract(
+        conn, contract_id="E001:100", entity_id="E001", contract_number="100",
+        candidate="TOM STEYER FOR GOVERNOR 2026",
+    )
+    conn.close()
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path),
+            "normalize-candidate",
+            "--canonical", "Tom Steyer",
+            "--alias", "TOM STEYER FOR GOVERNOR 2026",
+            "--office", "GOVERNOR",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "linked_contracts=1" in result.output
+
+    result = runner.invoke(cli, ["--db", str(db_path), "list-candidates"])
+    assert result.exit_code == 0
+    assert "Tom Steyer" in result.output
+    assert "contracts=1" in result.output
+
+
+def test_suggest_candidate_links_apply(runner, tmp_path):
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "Full Service")
+    queries.upsert_contract(
+        conn, contract_id="E001:100", entity_id="E001", contract_number="100",
+        candidate="TOM STEYER FOR GOVERNOR 2026",
+    )
+    cid = queries.upsert_candidate(conn, canonical_name="Tom Steyer")
+    queries.add_candidate_alias(conn, candidate_id=cid, alias_name="Tom Steyer")
+    conn.close()
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path),
+            "suggest-candidate-links",
+            "--min-score", "60",
+            "--apply",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Applied" in result.output
+
+    result = runner.invoke(cli, ["--db", str(db_path), "contracts", "--candidate", "Tom Steyer"])
+    assert result.exit_code == 0
+    assert "Tom Steyer" in result.output
 
 
 def _seed_extraction(db_path):
@@ -472,6 +867,34 @@ def test_summary_by_show(runner, tmp_path):
     assert "5A News" in result.output
 
 
+def test_summary_by_week(runner, tmp_path):
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    db_path = tmp_path / "test.db"
+    _seed_line_items(db_path)
+    conn = get_connection(db_path)
+    queries.insert_line_item_week(
+        conn,
+        file_id="F001",
+        contract_number="424082",
+        page_number=0,
+        start_date="03/03/26",
+        end_date="03/08/26",
+        day_pattern="-1111--",
+        spots=5,
+        rate=500.0,
+        extraction_method="regex",
+    )
+    conn.close()
+    result = runner.invoke(cli, [
+        "--db", str(db_path), "summary", "--candidate", "Steyer", "--by", "week",
+    ])
+    assert result.exit_code == 0
+    assert "03/03/26 - 03/08/26" in result.output
+    assert "spots=5" in result.output
+
+
 def test_summary_json_output(runner, tmp_path):
     import json
 
@@ -492,6 +915,96 @@ def test_query_format_json_no_results(runner, tmp_path):
     result = runner.invoke(cli, ["--db", str(db_path), "query", "--format", "json"])
     assert result.exit_code == 0
     assert "[]" in result.output
+
+
+@patch("fcc_ad_tracker.cli._make_client")
+def test_search_api_command_json(mock_make_client, runner, tmp_path):
+    from unittest.mock import MagicMock
+    import json
+
+    client = MagicMock()
+    client.search_political_files.return_value = [
+        {"id": "f1", "entityId": "E001", "fileName": "order.pdf"},
+    ]
+    mock_make_client.return_value = client
+
+    db_path = tmp_path / "test.db"
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path),
+            "search-api",
+            "--query", "Steyer",
+            "--campaign-year", "2026",
+            "--format", "json",
+        ],
+    )
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert len(data) == 1
+    assert data[0]["id"] == "f1"
+
+
+@patch("fcc_ad_tracker.cli._make_client")
+def test_search_api_command_gracefully_handles_failure(mock_make_client, runner, tmp_path):
+    from unittest.mock import MagicMock
+
+    client = MagicMock()
+    client.search_political_files.side_effect = RuntimeError("404 Not Found")
+    mock_make_client.return_value = client
+
+    db_path = tmp_path / "test.db"
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path),
+            "search-api",
+            "--query", "Steyer",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "search-api request failed" in result.output
+
+
+@patch("fcc_ad_tracker.cli._make_client")
+def test_search_api_ingest_uses_richer_station_keys(mock_make_client, runner, tmp_path):
+    from unittest.mock import MagicMock
+    from fcc_ad_tracker.db.connection import get_connection
+
+    client = MagicMock()
+    client.search_political_files.return_value = [
+        {
+            "id": "f1",
+            "entityId": "E001",
+            "fileName": "order.pdf",
+            "facilityCallSign": "KABC-TV",
+            "nielsenDma": "LOS ANGELES",
+            "communityCity": "LOS ANGELES",
+            "communityState": "CA",
+            "serviceType": "Full Service",
+        },
+    ]
+    mock_make_client.return_value = client
+
+    db_path = tmp_path / "test.db"
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path),
+            "search-api",
+            "--query", "Steyer",
+            "--ingest",
+        ],
+    )
+    assert result.exit_code == 0
+
+    conn = get_connection(db_path)
+    station = conn.execute("SELECT * FROM stations WHERE entity_id = 'E001'").fetchone()
+    assert station is not None
+    assert station["call_sign"] == "KABC-TV"
+    assert station["market"] == "LOS ANGELES"
+    assert station["city"] == "LOS ANGELES"
+    assert station["state"] == "CA"
 
 
 # --- District CLI tests ---

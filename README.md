@@ -1,4 +1,4 @@
-# fcc-ca-ads
+# fcc-ad-tracker
 
 [![CI](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/sh-patterson/fcc-opif-extractor/actions/workflows/ci.yml)
 
@@ -10,10 +10,10 @@ Extracts political ad spending data from FCC public inspection files. TV station
 
 **What is a candidate spending?**
 ```bash
-fcc-ca-ads contracts --candidate "Steyer"
+fcc-ad-tracker contracts --candidate "Steyer"
 # KABC-TV | 424082 | TOM STEYER FOR GOVERNOR 2026 | gross=$522,700 net=$444,295 spots=227
 
-fcc-ca-ads summary --candidate "Steyer" --by show
+fcc-ad-tracker summary --candidate "Steyer" --by show
 # NBA LA Lakers | spots=1 | spend=$25,000 | rate=$25,000-$25,000
 # Good Morning America | spots=28 | spend=$84,000 | rate=$3,000-$3,000
 # 5A News | spots=14 | spend=$7,000 | rate=$500-$500
@@ -21,13 +21,13 @@ fcc-ca-ads summary --candidate "Steyer" --by show
 
 **What is being spent in a media market?**
 ```bash
-fcc-ca-ads contracts --market "LOS ANGELES"
-fcc-ca-ads summary --station KABC-TV --by show
+fcc-ad-tracker contracts --market "LOS ANGELES"
+fcc-ad-tracker summary --station KABC-TV --by show
 ```
 
 **Who is buying a specific show?**
 ```bash
-fcc-ca-ads summary --show "American Idol"
+fcc-ad-tracker summary --show "American Idol"
 ```
 
 ### Not yet — needs a DMA-to-district crosswalk
@@ -66,7 +66,7 @@ This is the same data available through each station's online public file at `pu
 
 ## Scope
 
-**Works for any US state.** The FCC API is national. The tool defaults to California's four largest DMAs (Los Angeles, San Francisco, Sacramento, San Diego) but targeting other states is a config change — update `CA_TARGET_DMAS` in `config.py`.
+**Works for any US state.** The FCC API is national. The tool defaults to California's four largest DMAs (Los Angeles, San Francisco, Sacramento, San Diego) but targeting other states is a config change — update `DEFAULT_TARGET_DMAS` in `config.py`.
 
 **Three tiers of extraction accuracy:**
 
@@ -82,6 +82,7 @@ This is the same data available through each station's online public file at `pu
 
 - Python 3.11+
 - For OCR fallback: [Tesseract](https://github.com/tesseract-ocr/tesseract) and the `ocr` extra
+- For Gemini fallback: a Google API key (`GOOGLE_API_KEY`) and the `gemini` extra
 
 ## Installation
 
@@ -90,38 +91,64 @@ pip install -e .
 
 # With OCR support:
 pip install -e ".[ocr]"
+
+# With Gemini fallback support:
+pip install -e ".[gemini]"
+
+# With OCR + Gemini:
+pip install -e ".[ocr,gemini]"
 ```
 
 ## Usage
 
 ```bash
 # Setup
-fcc-ca-ads load-stations                          # load station data
-fcc-ca-ads discover --state CA                    # or discover from FCC API
+fcc-ad-tracker load-stations                          # load station data
+fcc-ad-tracker discover --state CA                    # or discover from FCC API
 
 # Download
-fcc-ca-ads download --station KABC-TV             # one station
-fcc-ca-ads download --all                         # all stations in DB
-fcc-ca-ads download --all --since 2026-01-01      # date range
-fcc-ca-ads download --station KNBC-TV --dry-run   # preview without downloading
+fcc-ad-tracker download --station KABC-TV             # one station
+fcc-ad-tracker download --all                         # all stations in DB
+fcc-ad-tracker download --all --since 2026-01-01      # date range
+fcc-ad-tracker download --station KNBC-TV --dry-run   # preview without downloading
 
 # Extract
-fcc-ca-ads extract                                # process all unextracted PDFs
+fcc-ad-tracker extract                                # process all unextracted PDFs
+fcc-ad-tracker extract --use-gemini                  # force Gemini fallback on
+fcc-ad-tracker extract --no-gemini                   # force Gemini fallback off
 
 # Query
-fcc-ca-ads query --candidate "Garcia"             # search extractions
-fcc-ca-ads contracts --candidate "Steyer"         # contract-level totals
-fcc-ca-ads summary --candidate "Steyer"           # spend by station
-fcc-ca-ads summary --candidate "Steyer" --by show # spend by show
-fcc-ca-ads summary --station KABC-TV --by show    # all campaigns on a station
+fcc-ad-tracker query --candidate "Garcia"             # search extractions
+fcc-ad-tracker contracts --candidate "Steyer"         # contract-level totals
+fcc-ad-tracker summary --candidate "Steyer"           # spend by station
+fcc-ad-tracker summary --candidate "Steyer" --by show # spend by show
+fcc-ad-tracker summary --station KABC-TV --by show    # all campaigns on a station
 
 # Export
-fcc-ca-ads contracts --format csv > contracts.csv
-fcc-ca-ads contracts --format json
-fcc-ca-ads query --format csv
+fcc-ad-tracker contracts --format csv > contracts.csv
+fcc-ad-tracker contracts --format json
+fcc-ad-tracker query --format csv
 ```
 
 All commands support `--db PATH` to specify the database location (default: `data/ads.db`) and `-v` for debug logging.
+
+### Gemini fallback
+
+Gemini is optional and only used as a fallback when:
+- contract number is missing from regex extraction, or
+- no line items were matched by regex
+
+Setup:
+
+```bash
+pip install -e ".[gemini]"
+cp .env.example .env
+# then set GOOGLE_API_KEY in .env
+```
+
+By default, `extract` auto-enables Gemini when `GOOGLE_API_KEY` is set.
+Use `--use-gemini` or `--no-gemini` to override.
+The CLI automatically loads `.env` at startup.
 
 ## Database
 

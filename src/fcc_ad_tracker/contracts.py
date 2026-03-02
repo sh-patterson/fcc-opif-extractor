@@ -35,6 +35,11 @@ def extract_contract_number(text: str) -> str | None:
     if m:
         return m.group(1)
 
+    # WideOrbit: standalone number followed by " / " (on its own line)
+    m = re.search(r"(?m)^\s*(\d{5,7})\s*/\s*\w+", text)
+    if m:
+        return m.group(1)
+
     # Underscore-delimited: name_NUMBER_Rev
     m = re.search(r"_(\d{5,7})_", text)
     if m:
@@ -72,9 +77,11 @@ def extract_contract_dates(text: str) -> tuple[str, str] | None:
     """
     date_pat = r"(\d{1,2}/\d{1,2}/\d{2,4})"
     # Labeled: "Contract Dates:" or "Contract Dates" followed by date range
+    # Allow newlines + intervening text between label and dates (WideOrbit format)
     m = re.search(
-        rf"(?i)contract\s+dates?\s*:?\s*{date_pat}\s*[-–—]\s*{date_pat}",
+        rf"(?i)contract\s+dates?\b.*?{date_pat}\s*[-–—]\s*{date_pat}",
         text,
+        re.DOTALL,
     )
     if m:
         return m.group(1), m.group(2)
@@ -92,7 +99,7 @@ def extract_agency(text: str) -> str | None:
 
 def extract_demographics(text: str) -> str | None:
     """Extract demographic target from 'Demographic:' label."""
-    m = re.search(r"(?i)demographic\s*:\s*(\S+)", text)
+    m = re.search(r"(?i)demographic\s*:?\s*\n?\s*(.+)", text)
     if m:
         return m.group(1).strip()
     return None
