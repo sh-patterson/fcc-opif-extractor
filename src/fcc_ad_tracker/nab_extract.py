@@ -27,25 +27,40 @@ def extract_nab_form(text: str) -> NabFormData | None:
     if not text or not text.strip():
         return None
     text_u = text.upper()
-    if "NAB FORM PB-18" not in text_u and "NAB FORM PB-19" not in text_u:
+    form_type_match = re.search(r"\bPB-(18|19)\b", text_u)
+    has_nab_title = bool(
+        re.search(r"\bNAB\s+FORM\s+PB-(?:18|19)\b", text_u)
+        or re.search(
+            r"POLITICAL\s+BROADCAST\s+AGREEMENT\s+FORM[\s\S]{0,100}\(PB-(?:18|19)\)",
+            text_u,
+        )
+    )
+    if not has_nab_title or form_type_match is None:
         return None
 
-    form_type = "PB-18" if "PB-18" in text_u else ("PB-19" if "PB-19" in text_u else None)
-    candidate = _capture_first(r"^\s*(?:candidate(?:\s*name)?|name)\s*:\s*(.+)$", text)
-    office = _capture_first(r"^\s*office(?:\s+sought)?\s*:\s*(.+)$", text)
-    party = _capture_first(r"^\s*party(?:\s+affiliation)?\s*:\s*(.+)$", text)
-    level = _capture_first(
-        r"^\s*(?:federal|state|local)\s*(?:office)?\s*:\s*(.+)$",
+    form_type = f"PB-{form_type_match.group(1)}"
+    horizontal = r"[^\S\r\n]*"
+    value = r"([^\r\n]+)"
+    candidate = None
+    if form_type == "PB-18":
+        candidate = _capture_first(
+            rf"^{horizontal}(?:candidate(?:{horizontal}name)?|name)"
+            rf"{horizontal}:{horizontal}{value}$",
+            text,
+        )
+    office = _capture_first(
+        rf"^{horizontal}office(?:{horizontal}sought)?{horizontal}:{horizontal}{value}$",
         text,
     )
-    if level is None:
-        # Fallback for checkbox-style text.
-        if re.search(r"\bfederal\b", text, flags=re.IGNORECASE):
-            level = "federal"
-        elif re.search(r"\bstate\b", text, flags=re.IGNORECASE):
-            level = "state"
-        elif re.search(r"\blocal\b", text, flags=re.IGNORECASE):
-            level = "local"
+    party = _capture_first(
+        rf"^{horizontal}party(?:{horizontal}affiliation)?{horizontal}:{horizontal}{value}$",
+        text,
+    )
+    level = _capture_first(
+        rf"^{horizontal}(?:federal|state|local){horizontal}(?:office)?"
+        rf"{horizontal}:{horizontal}{value}$",
+        text,
+    )
 
     return NabFormData(
         form_type=form_type,
