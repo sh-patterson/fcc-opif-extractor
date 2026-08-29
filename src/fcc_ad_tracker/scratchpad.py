@@ -4,6 +4,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def _json_default(value):
+    if isinstance(value, Path):
+        return value.as_posix()
+    return str(value)
+
+
 class Scratchpad:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -16,7 +22,7 @@ class Scratchpad:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             **data,
         }
-        line = json.dumps(entry, default=str)
+        line = json.dumps(entry, default=_json_default)
         with self._lock:
             self._file.write(line + "\n")
             self._file.flush()
