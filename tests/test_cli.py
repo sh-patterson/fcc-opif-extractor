@@ -381,6 +381,44 @@ def test_extract_continues_when_one_file_crashes(mock_extract, runner, tmp_path)
 
 
 @patch("fcc_ad_tracker.extract.extract_pdf_text")
+def test_extract_marks_unreadable_image_pdf_as_error(mock_extract, runner, tmp_path):
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+    from fcc_ad_tracker.extract import ExtractionResult
+
+    db_path = tmp_path / "test.db"
+    pdf_path = tmp_path / "scan.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "TV")
+    queries.upsert_file(
+        conn, file_id="F001", entity_id="E001", file_manager_id="FM001",
+        file_name="scan.pdf", folder_id="FD001", file_size=1000,
+        folder_path="/Political Files/2026",
+    )
+    queries.mark_downloaded(conn, "F001", sha256="sha-1", local_path=str(pdf_path))
+    conn.close()
+
+    mock_extract.return_value = ExtractionResult(
+        has_text=False,
+        ocr_used=False,
+        pages=[""],
+        error="ocrmypdf is not installed",
+    )
+
+    result = runner.invoke(cli, ["--db", str(db_path), "extract", "--no-gemini"])
+
+    assert result.exit_code == 0
+    conn = get_connection(db_path)
+    status = conn.execute(
+        "SELECT extraction_status FROM files WHERE file_id = 'F001'"
+    ).fetchone()[0]
+    conn.close()
+    assert status == "error"
+
+
+@patch("fcc_ad_tracker.extract.extract_pdf_text")
 def test_extract_skips_done_files_unless_reextract(mock_extract, runner, tmp_path):
     from types import SimpleNamespace
     from fcc_ad_tracker.db.connection import get_connection

@@ -889,6 +889,20 @@ def extract(ctx, use_gemini, reextract):
                     )
                 continue
 
+            if getattr(result, "has_text", True) is False:
+                error_message = result.error or "PDF contains no extractable text after OCR"
+                logger.error("Failed to extract %s (%s): %s", f["file_id"], path, error_message)
+                queries.set_extraction_status(conn, f["file_id"], "error")
+                if scratchpad:
+                    scratchpad.log(
+                        "error",
+                        operation="extract",
+                        error_message=error_message,
+                        file_id=f["file_id"],
+                        local_path=str(path),
+                    )
+                continue
+
             # Content-based file type classification (refine from filename-based)
             effective_file_type = f["file_type"] or "unknown"
             if result.pages:
