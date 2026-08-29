@@ -77,18 +77,11 @@ def test_search_facilities_uses_current_fcc_route():
     )
 
 
-@responses.activate
 def test_get_download_url():
     cfg = OpifConfig(rate_limit_delay=0.0)
     client = OpifClient(cfg)
-    responses.add(
-        responses.GET,
-        f"{cfg.base_url}/api/manager/download/folder-abc/file-123.pdf",
-        status=302,
-        headers={"Location": "https://files.fcc.gov/some/path.pdf"},
-    )
-    url = client.get_download_url("folder-abc", "file-123")
-    assert "files.fcc.gov" in url
+    url = client.get_download_url("file-123")
+    assert url == "https://files.fcc.gov/download/file-123.pdf"
 
 
 @responses.activate
@@ -249,19 +242,13 @@ def test_get_file_history_never_cached(tmp_path):
 
 
 @responses.activate
-def test_get_download_url_never_cached(tmp_path):
-    """get_download_url should never be cached."""
+def test_get_download_url_makes_no_network_calls(tmp_path):
+    """get_download_url must never hit publicfiles.fcc.gov (Akamai-gated and blocks scripted clients)."""
     cfg = OpifConfig(rate_limit_delay=0.0, cache_dir=tmp_path)
     client = OpifClient(cfg)
-    responses.add(responses.GET,
-                  f"{cfg.base_url}/api/manager/download/folder-abc/file-123.pdf",
-                  status=302, headers={"Location": "https://files.fcc.gov/path.pdf"})
-    responses.add(responses.GET,
-                  f"{cfg.base_url}/api/manager/download/folder-abc/file-123.pdf",
-                  status=302, headers={"Location": "https://files.fcc.gov/path.pdf"})
-    client.get_download_url("folder-abc", "file-123")
-    client.get_download_url("folder-abc", "file-123")
-    assert len(responses.calls) == 2
+    client.get_download_url("file-123")
+    client.get_download_url("file-123")
+    assert len(responses.calls) == 0
 
 
 @responses.activate

@@ -107,16 +107,10 @@ def test_full_pipeline(db, text_pdf, tmp_path):
 
     # 3. Download (use synthetic text_pdf as content)
     pdf_content = text_pdf.read_bytes()
-    responses.add(
-        responses.GET,
-        f"{cfg.base_url}/api/manager/download/pol-folder/fm-1.pdf",
-        status=302,
-        headers={"Location": "https://files.fcc.gov/test.pdf"},
-    )
-    responses.add(responses.GET, "https://files.fcc.gov/test.pdf", body=pdf_content)
+    responses.add(responses.GET, "https://files.fcc.gov/download/fm-1.pdf", body=pdf_content)
 
     dest = tmp_path / "KABC-TV" / "fm-1.pdf"
-    download_pdf(client, "pol-folder", "fm-1", dest)
+    download_pdf(client, "fm-1", dest)
     assert dest.exists()
 
     queries.upsert_file(

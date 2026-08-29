@@ -40,9 +40,9 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def download_pdf(client: OpifClient, folder_id: str, file_manager_id: str, dest: Path) -> Path:
+def download_pdf(client: OpifClient, file_manager_id: str, dest: Path) -> Path:
     """Download a PDF via the client's download URL resolution. Returns dest path."""
-    url = client.get_download_url(folder_id, file_manager_id)
+    url = client.get_download_url(file_manager_id)
     content = client.download_bytes(url, timeout=60)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(content)

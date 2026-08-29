@@ -614,7 +614,7 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
         thread_conn = get_connection(db_path)
         dest = DEFAULT_RAW / call_sign / f"{item['fmid']}.pdf"
         try:
-            download_pdf(client, item["folder_id"], item["fmid"], dest)
+            download_pdf(client, item["fmid"], dest)
             sha = sha256_file(dest)
 
             # SHA-256 dedup: skip if identical file already downloaded
@@ -667,7 +667,7 @@ def _download_station(client, db_path, entity_id, call_sign, since, until, max_f
     for item in items:
         dest = DEFAULT_RAW / call_sign / f"{item['fmid']}.pdf"
         try:
-            download_pdf(client, item["folder_id"], item["fmid"], dest)
+            download_pdf(client, item["fmid"], dest)
             sha = sha256_file(dest)
 
             # SHA-256 dedup: skip if identical file already downloaded

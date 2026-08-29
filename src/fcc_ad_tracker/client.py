@@ -158,16 +158,8 @@ class OpifClient:
             f"Unexpected file history response shape ({type(data).__name__}): {data}"
         )
 
-    def get_download_url(self, folder_id: str, file_manager_id: str) -> str:
-        resp = self._request(
-            "GET",
-            f"/api/manager/download/{folder_id}/{file_manager_id}.pdf",
-            allow_redirects=False,
-        )
-        if resp.status_code == 302:
-            return resp.headers["Location"]
-        resp.raise_for_status()
-        return resp.url
+    def get_download_url(self, file_manager_id: str) -> str:
+        return f"https://files.fcc.gov/download/{file_manager_id}.pdf"
 
     def download_bytes(self, url: str, *, timeout: int = 60) -> bytes:
         """Download binary content using client-level throttling/retry/session controls."""

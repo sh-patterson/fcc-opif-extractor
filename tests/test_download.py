@@ -93,8 +93,8 @@ def test_download_pdf(tmp_path):
     client.download_bytes.return_value = pdf_content
 
     dest = tmp_path / "output.pdf"
-    result = download_pdf(client, "folder-abc", "file-123", dest)
+    result = download_pdf(client, "file-123", dest)
     assert result == dest
     assert dest.read_bytes() == pdf_content
-    client.get_download_url.assert_called_once_with("folder-abc", "file-123")
+    client.get_download_url.assert_called_once_with("file-123")
     client.download_bytes.assert_called_once_with(download_url, timeout=60)
