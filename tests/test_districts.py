@@ -88,6 +88,15 @@ class TestAutoMatchMarkets:
         matched, unmatched = auto_match_markets(db, rows)
         assert matched["Los Angeles"] == "LOS ANGELES"
 
+    def test_match_preserves_mixed_case_fcc_market(self, db, crosswalk_csv):
+        queries.upsert_station(db, "1", "KABC-TV", "Los Angeles", "Los Angeles", "CA", "TV")
+        rows = load_crosswalk_csv(crosswalk_csv)
+
+        matched, unmatched = auto_match_markets(db, rows)
+
+        assert matched["Los Angeles"] == "Los Angeles"
+        assert "Los Angeles" not in unmatched
+
     def test_unmatched_reported(self, db, crosswalk_csv):
         # No stations loaded — everything unmatched
         rows = load_crosswalk_csv(crosswalk_csv)
@@ -260,6 +269,32 @@ class TestAutoMatchEdgeCases:
 
 
 class TestQueryContractsByDistrict:
+    def test_mixed_case_station_market_matches_crosswalk(self, db):
+        queries.upsert_station(db, "1", "KABC-TV", "Los Angeles", "Los Angeles", "CA", "TV")
+        queries.upsert_contract(
+            db,
+            contract_id="1:100",
+            entity_id="1",
+            contract_number="100",
+            candidate="Steyer",
+            gross_total=100000.0,
+        )
+        insert_crosswalk(
+            db,
+            [{
+                "state": "CA",
+                "district": "CA-27",
+                "dma_name": "Los Angeles",
+                "population": 760067,
+                "weight": 1.0,
+            }],
+            {"Los Angeles": "LOS ANGELES"},
+        )
+
+        results = queries.query_contracts_by_district(db, "CA-27")
+
+        assert len(results) == 1
+
     def test_full_weight_district(self, db):
         _seed_district_data(db)
         results = queries.query_contracts_by_district(db, "CA-27")

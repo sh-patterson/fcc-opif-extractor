@@ -810,7 +810,7 @@ def query_contracts_by_district(
         FROM contracts c
         JOIN stations s ON c.entity_id = s.entity_id
         LEFT JOIN candidates cn ON c.candidate_id = cn.id
-        JOIN dma_districts dd ON dd.fcc_market = s.market
+        JOIN dma_districts dd ON dd.fcc_market = s.market COLLATE NOCASE
         WHERE dd.district = ?
     """
     params: list = [district]
@@ -841,7 +841,7 @@ def summary_by_district(
         FROM contracts c
         JOIN stations s ON c.entity_id = s.entity_id
         LEFT JOIN candidates cn ON c.candidate_id = cn.id
-        JOIN dma_districts dd ON dd.fcc_market = s.market
+        JOIN dma_districts dd ON dd.fcc_market = s.market COLLATE NOCASE
         WHERE 1=1
     """
     params: list = []
