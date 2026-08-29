@@ -21,11 +21,20 @@ def parse_rss_items(xml_text: str) -> list[RssItem]:
 
     root = ET.fromstring(xml_text)
     items: list[RssItem] = []
-    for item in root.findall(".//item"):
-        title = (item.findtext("title") or "").strip()
-        link = (item.findtext("link") or "").strip()
-        guid = (item.findtext("guid") or link or title).strip()
-        pub_date = (item.findtext("pubDate") or "").strip() or None
+    entries = [element for element in root.iter() if _local_name(element.tag) in {"item", "entry"}]
+    for item in entries:
+        title = (_child_text(item, "title") or "").strip()
+        link_element = _child(item, "link")
+        link = ""
+        if link_element is not None:
+            link = (link_element.text or link_element.get("href") or "").strip()
+        guid = (_child_text(item, "guid") or _child_text(item, "id") or link or title).strip()
+        pub_date = (
+            _child_text(item, "pubDate")
+            or _child_text(item, "updated")
+            or _child_text(item, "published")
+            or ""
+        ).strip() or None
         raw_xml = ET.tostring(item, encoding="unicode")
         if not guid:
             continue
@@ -39,3 +48,16 @@ def parse_rss_items(xml_text: str) -> list[RssItem]:
             )
         )
     return items
+
+
+def _local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
+
+
+def _child(element: ET.Element, name: str) -> ET.Element | None:
+    return next((child for child in element if _local_name(child.tag) == name), None)
+
+
+def _child_text(element: ET.Element, name: str) -> str | None:
+    child = _child(element, name)
+    return child.text if child is not None else None

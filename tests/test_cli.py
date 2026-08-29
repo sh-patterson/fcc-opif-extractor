@@ -161,6 +161,15 @@ def test_rss_sync_triggers_download(runner, tmp_path):
     mock_dl.assert_called_once()
 
 
+def test_parse_rss_pub_date_accepts_atom_timestamp():
+    from fcc_ad_tracker.cli import _parse_rss_pub_date
+
+    result = _parse_rss_pub_date("2026-08-25T23:59:59Z")
+
+    assert result is not None
+    assert result.date().isoformat() == "2026-08-25"
+
+
 def _seed_station(db_path, call_sign="KABC-TV", entity_id="E001"):
     """Seed a station into the database."""
     from fcc_ad_tracker.db.connection import get_connection

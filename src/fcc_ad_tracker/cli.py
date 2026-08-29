@@ -127,8 +127,11 @@ def _parse_rss_pub_date(value: str | None) -> datetime | None:
         return None
     try:
         return parsedate_to_datetime(value)
-    except Exception:
-        return None
+    except (TypeError, ValueError):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
 
 
 @cli.command()
