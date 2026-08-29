@@ -159,15 +159,12 @@ class OpifClient:
         )
 
     def get_download_url(self, folder_id: str, file_manager_id: str) -> str:
-        resp = self._request(
-            "GET",
-            f"/api/manager/download/{folder_id}/{file_manager_id}.pdf",
-            allow_redirects=False,
-        )
-        if resp.status_code == 302:
-            return resp.headers["Location"]
-        resp.raise_for_status()
-        return resp.url
+        """Build the FCC CDN URL without calling the obsolete resolver endpoint.
+
+        ``folder_id`` remains in the signature for compatibility with existing callers and
+        saved file-history records. The CDN identifies files by ``file_manager_id`` alone.
+        """
+        return f"https://files.fcc.gov/download/{file_manager_id}.pdf"
 
     def download_bytes(self, url: str, *, timeout: int = 60) -> bytes:
         """Download binary content using client-level throttling/retry/session controls."""

@@ -12,7 +12,7 @@
 - `GET /api/manager/folder/parentFolders.json` — Get top-level folders for an entity
 - `GET /api/manager/folder/id/{folderId}.json` — Get folder contents
 - `GET /api/manager/file/history.json` — File history with date range
-- `GET /api/manager/download/{folderId}/{fileManagerId}.pdf` — Download file via redirect
+- `GET https://files.fcc.gov/download/{fileManagerId}.pdf` — Download directly from the FCC CDN
 
 **Endpoints that exist but we DON'T use:**
 - `GET https://www.fcc.gov/search/api` — Full-text search across ALL entities' political files. Supports filters for `political_file_type`, `source_service_code`, `office_type`, `campaign_year`. This is a major gap — it could let us find political files across all stations without needing to discover stations first, and filter by campaign year or office type.
@@ -110,7 +110,7 @@ The code makes a single call with `count=max_files` (default 100). If a busy sta
 
 **Not cached:**
 - `get_file_history()` — Freshness mechanism. Correct NOT to cache.
-- `get_download_url()` — Ephemeral signed URLs. Correct NOT to cache.
+- `get_download_url()` — Builds the stable FCC CDN URL locally. No cache or resolver call needed.
 - `get_folder()` — Not cached. Should consider caching for folder tree walks.
 
 **Missing:** No cache invalidation beyond TTL expiry. No way to force-refresh-and-store (only `--no-cache` which disables entirely).
