@@ -43,8 +43,9 @@ def auto_match_markets(
     """
     # Get all unique markets from stations table
     station_markets = {
-        r["market"]
+        r["market"].upper(): r["market"]
         for r in conn.execute("SELECT DISTINCT market FROM stations WHERE market IS NOT NULL")
+        if r["market"].strip()
     }
 
     unique_dmas = {r["dma_name"] for r in rows}
@@ -54,7 +55,7 @@ def auto_match_markets(
     for dma in sorted(unique_dmas):
         upper = dma.upper()
         if upper in station_markets:
-            matched[dma] = upper
+            matched[dma] = station_markets[upper]
         else:
             unmatched.append(dma)
 
