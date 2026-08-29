@@ -171,6 +171,10 @@ def test_save_and_load_stations(tmp_path):
     ]
     path = tmp_path / "stations.json"
     save_stations(stations, path)
+    saved = json.loads(path.read_text())
+    assert set(saved[0]) == {
+        "entity_id", "call_sign", "market", "city", "state", "service_type"
+    }
     loaded = load_stations(path)
     assert len(loaded) == 1
     assert loaded[0].entity_id == "1"
