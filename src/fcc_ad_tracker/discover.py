@@ -27,7 +27,7 @@ class Station:
 
     @classmethod
     def from_facility(cls, facility: dict) -> "Station":
-        community = facility.get("community", {})
+        community = facility.get("community") or {}
         return cls(
             entity_id=str(facility["id"]),
             call_sign=facility["callSign"],
@@ -39,21 +39,34 @@ class Station:
 
     @property
     def is_full_power(self) -> bool:
-        svc = self.service_type.lower()
-        return (
-            ("full" in svc and ("service" in svc or "power" in svc))
-            or ("class" in svc and "a" in svc)
-        )
+        return _is_full_power_facility({"service": self.service_type})
+
+
+def _is_full_power_facility(facility: dict) -> bool:
+    service = str(facility.get("service", facility.get("serviceType", ""))).lower()
+    if "low power" in service:
+        return False
+    return (
+        ("full" in service and ("service" in service or "power" in service))
+        or ("class" in service and "a" in service)
+        or str(facility.get("facilityType", "")).upper() in {"CDT", "EDT"}
+    )
 
 
 def _extract_facilities(data: dict) -> list[dict]:
     """Extract facility dicts from facility search response.
 
-    The API returns searchList with searchType categories, each containing
-    a facilityList. We flatten all facilityList entries.
+    Current responses expose TV matches in globalSearchResults.tvFacilityList.
+    Legacy responses used searchList categories with nested facilityList values.
     """
+    results = data.get("results", {})
+    global_results = results.get("globalSearchResults", {})
+    current_facilities = global_results.get("tvFacilityList")
+    if isinstance(current_facilities, list):
+        return current_facilities
+
     facilities = []
-    search_list = data.get("results", {}).get("searchList", [])
+    search_list = results.get("searchList", [])
     for entry in search_list:
         facilities.extend(entry.get("facilityList", []))
     return facilities
@@ -67,12 +80,18 @@ def discover_stations(
 ) -> list[Station]:
     data = client.search_facilities(state)
     facilities = _extract_facilities(data)
-    stations = [Station.from_facility(f) for f in facilities]
-
-    if full_power_only:
-        stations = [s for s in stations if s.is_full_power]
+    requested_state = state.strip().casefold()
+    stations = []
+    for facility in facilities:
+        station = Station.from_facility(facility)
+        if station.state.casefold() != requested_state:
+            continue
+        if full_power_only and not _is_full_power_facility(facility):
+            continue
+        stations.append(station)
     if target_dmas:
-        stations = [s for s in stations if s.market in target_dmas]
+        normalized_dmas = {dma.casefold() for dma in target_dmas}
+        stations = [s for s in stations if s.market.casefold() in normalized_dmas]
 
     logger.info(
         "Discovered %d stations in %s (filtered from %d facilities)",

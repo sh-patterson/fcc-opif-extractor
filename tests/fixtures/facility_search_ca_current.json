@@ -1,0 +1,51 @@
+{
+  "status": "OK",
+  "message": "4 Facilities Found",
+  "results": {
+    "globalSearchResults": {
+      "tvResultsCount": 4,
+      "tvFacilityList": [
+        {
+          "id": "282",
+          "callSign": "KABC-TV",
+          "service": "Digital TV",
+          "communityCity": "LOS ANGELES",
+          "communityState": "CA",
+          "facilityType": "CDT",
+          "nielsenDma": "Los Angeles",
+          "activeInd": "Y"
+        },
+        {
+          "id": "37689",
+          "callSign": "KAXT-CD",
+          "service": "Digital Class A TV",
+          "communityCity": "SAN FRANCISCO",
+          "communityState": "CA",
+          "facilityType": "",
+          "nielsenDma": "LOS ANGELES",
+          "activeInd": "Y"
+        },
+        {
+          "id": "127882",
+          "callSign": "KBKF-LD",
+          "service": "Low Power Digital TV",
+          "communityCity": "SAN JOSE",
+          "communityState": "CA",
+          "facilityType": "",
+          "nielsenDma": "Los Angeles",
+          "activeInd": "Y"
+        },
+        {
+          "id": "999",
+          "callSign": "KOUT-TV",
+          "service": "Digital TV",
+          "communityCity": "LAS VEGAS",
+          "communityState": "NV",
+          "facilityType": "CDT",
+          "nielsenDma": "Los Angeles",
+          "activeInd": "Y"
+        }
+      ]
+    }
+  }
+}
