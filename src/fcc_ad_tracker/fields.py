@@ -80,7 +80,11 @@ def extract_office_sought(text: str, page: int = 0) -> list[FieldMatch]:
     matches: list[FieldMatch] = []
 
     # High: labeled "Office:" / "Office Sought:"
-    for m in re.finditer(r"(?im)^\s*office(?:\s+sought)?\s*:\s*(.+)$", text):
+    for m in re.finditer(
+        r"(?im)^[^\S\r\n]*office(?:[^\S\r\n]+sought)?[^\S\r\n]*:"
+        r"[^\S\r\n]*([^\r\n]+)$",
+        text,
+    ):
         val = re.sub(r"\s+", " ", m.group(1)).strip()
         if val:
             matches.append(FieldMatch("office_sought", val, "high", page))

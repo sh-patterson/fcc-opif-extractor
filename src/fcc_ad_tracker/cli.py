@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from email.utils import parsedate_to_datetime
@@ -122,6 +121,87 @@ def _station_fields_from_search_row(row: dict) -> tuple[str, str, str, str, str]
     return str(call_sign), str(market), str(city), str(state), str(service_type)
 
 
+def _normalized_search_text(value: object) -> str:
+    """Normalize FCC filenames and folder paths for human query matching."""
+    import re
+
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).split())
+
+
+def _search_loaded_station_history(
+    client,
+    conn,
+    *,
+    query: str,
+    campaign_year: str | None,
+    office_type: str | None,
+    political_file_type: str | None,
+    limit: int,
+) -> list[dict]:
+    """Search supported file-history data for stations already loaded in the database."""
+    from datetime import date
+
+    stations = queries.list_stations(conn)
+    if campaign_year:
+        start_date = f"{campaign_year}-01-01"
+        end_date = f"{campaign_year}-12-31"
+    else:
+        start_date = "2025-01-01"
+        end_date = date.today().isoformat()
+
+    terms = [
+        _normalized_search_text(value)
+        for value in (query, office_type, political_file_type)
+        if value and value != "*"
+    ]
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for station in stations:
+        offset = 0
+        while len(rows) < limit:
+            batch = client.get_file_history(
+                station["entity_id"],
+                start_date,
+                end_date,
+                count=100,
+                offset=offset,
+            )
+            if not batch:
+                break
+            for item in batch:
+                folder_path = str(item.get("file_folder_path") or "")
+                if "political" not in folder_path.lower():
+                    continue
+                haystack = _normalized_search_text(
+                    f"{item.get('file_name', '')} {folder_path}"
+                )
+                if not all(term in haystack for term in terms):
+                    continue
+                file_id = str(item.get("file_id") or "")
+                if not file_id or file_id in seen:
+                    continue
+                row = dict(item)
+                # File-history location fields can describe the uploader rather than the
+                # broadcast facility. The loaded station row is authoritative here.
+                row["call_sign"] = station["call_sign"]
+                row["market"] = station["market"]
+                row["city"] = station["city"]
+                row["state"] = station["state"]
+                row["communityCity"] = station["city"]
+                row["communityState"] = station["state"]
+                row["serviceType"] = station["service_type"]
+                rows.append(row)
+                seen.add(file_id)
+                if len(rows) >= limit:
+                    break
+            if len(batch) < 100:
+                break
+            offset += len(batch)
+        if len(rows) >= limit:
+            break
+    return rows
+
+
 def _parse_rss_pub_date(value: str | None) -> datetime | None:
     if not value:
         return None
@@ -210,7 +290,7 @@ def discover(ctx, state, output, cross_state_dma):
 
 
 @cli.command("search-api")
-@click.option("--query", default="*", help="Search query string for FCC /search/api")
+@click.option("--query", default="*", help="Search query string")
 @click.option("--campaign-year", default=None, help="Campaign year filter (e.g. 2026)")
 @click.option("--office-type", default=None, help="Office type filter")
 @click.option("--political-file-type", default=None, help="Political file type filter")
@@ -219,11 +299,12 @@ def discover(ctx, state, output, cross_state_dma):
 @click.option("--format", "fmt", type=click.Choice(["table", "json"]), default="table")
 @click.pass_context
 def search_api(ctx, query, campaign_year, office_type, political_file_type, limit, ingest, fmt):
-    """Search FCC /search/api across entities."""
+    """Search political files, with station-history fallback when global search is unavailable."""
     conn = ctx.obj["conn"]
     client = _make_client(ctx)
 
     rows: list[dict] = []
+    result_source = "/search/api"
     page = 0
     page_size = min(limit, 100)
     try:
@@ -243,8 +324,29 @@ def search_api(ctx, query, campaign_year, office_type, political_file_type, limi
                 break
             page += 1
     except Exception as exc:
-        click.echo(f"search-api request failed: {exc}")
-        return
+        stations = queries.list_stations(conn)
+        if not stations:
+            click.echo(f"search-api request failed: {exc}")
+            click.echo("No loaded stations are available for the supported file-history fallback.")
+            return
+        click.echo(
+            "FCC global search is unavailable; searching loaded station file history instead.",
+            err=True,
+        )
+        result_source = "loaded station file history"
+        try:
+            rows = _search_loaded_station_history(
+                client,
+                conn,
+                query=query,
+                campaign_year=campaign_year,
+                office_type=office_type,
+                political_file_type=political_file_type,
+                limit=limit,
+            )
+        except Exception as fallback_exc:
+            click.echo(f"Station file-history search failed: {fallback_exc}")
+            return
 
     rows = rows[:limit]
     ingested = 0
@@ -289,7 +391,7 @@ def search_api(ctx, query, campaign_year, office_type, political_file_type, limi
         import json
         click.echo(json.dumps(rows, indent=2))
     else:
-        click.echo(f"Found {len(rows)} results from /search/api")
+        click.echo(f"Found {len(rows)} results from {result_source}")
         for r in rows[:20]:
             file_name = r.get("file_name") or r.get("fileName") or "unknown"
             file_id = r.get("file_id") or r.get("id") or "n/a"
@@ -736,9 +838,14 @@ def extract(ctx, use_gemini, reextract):
     conn = ctx.obj["conn"]
     scratchpad = ctx.obj.get("scratchpad")
 
-    # Resolve Gemini availability
+    # Resolve Gemini availability. Explicit requests fail before any file is mutated.
+    from fcc_ad_tracker.gemini_runtime import gemini_readiness
+
+    gemini_ready, gemini_reason = gemini_readiness()
+    if use_gemini is True and not gemini_ready:
+        raise click.ClickException(f"Gemini extraction is unavailable: {gemini_reason}")
     if use_gemini is None:
-        use_gemini = bool(os.environ.get("GOOGLE_API_KEY"))
+        use_gemini = gemini_ready
 
     if reextract:
         files = conn.execute(

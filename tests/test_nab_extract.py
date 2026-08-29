@@ -22,3 +22,22 @@ def test_extract_nab_form_pb18():
 
 def test_extract_nab_form_non_nab_returns_none():
     assert extract_nab_form("Contract: 424082") is None
+
+
+def test_extract_current_pb19_title_with_blank_fields():
+    text = """\
+Political Broadcast Agreement Form for
+Non-Candidate/Issue Advertisements (PB-19)
+Candidate Name: Name
+Office:
+Group:
+This form discusses federal, state, and local political advertising rules.
+"""
+
+    result = extract_nab_form(text)
+
+    assert result is not None
+    assert result.form_type == "PB-19"
+    assert result.candidate_name is None
+    assert result.office_sought is None
+    assert result.election_level is None

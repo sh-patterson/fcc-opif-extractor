@@ -111,6 +111,12 @@ def test_extract_office_sought_from_for_pattern():
     assert matches[0].value == "GOVERNOR"
 
 
+def test_extract_office_sought_does_not_capture_next_label():
+    text = "Office:\nGroup:\nCommittee Name: Yes on 45"
+
+    assert extract_office_sought(text) == []
+
+
 def test_extract_advertiser_ordered_by():
     """'Ordered By' label gives medium confidence for advertiser."""
     text = "Ordered By: Citizens United PAC"

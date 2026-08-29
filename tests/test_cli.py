@@ -976,6 +976,69 @@ def test_search_api_command_gracefully_handles_failure(mock_make_client, runner,
 
 
 @patch("fcc_ad_tracker.cli._make_client")
+def test_search_api_falls_back_to_loaded_station_history(mock_make_client, runner, tmp_path):
+    from unittest.mock import MagicMock
+    from fcc_ad_tracker.db.connection import get_connection
+    from fcc_ad_tracker.db import queries
+
+    client = MagicMock()
+    client.search_political_files.side_effect = RuntimeError("403 Forbidden")
+    client.get_file_history.return_value = [
+        {
+            "file_id": "f1",
+            "entity_id": "E001",
+            "file_manager_id": "fm1",
+            "file_name": "No_on_Prop_40_Agreement.pdf",
+            "folder_id": "folder1",
+            "file_size": 123,
+            "file_folder_path": "Political Files/2026/Non-Candidate Issue Ads",
+            "create_ts": "2026-08-13T10:00:00-04:00",
+            "city": "New York",
+            "state": "NY",
+        }
+    ]
+    mock_make_client.return_value = client
+
+    db_path = tmp_path / "test.db"
+    conn = get_connection(db_path)
+    queries.upsert_station(conn, "E001", "KABC-TV", "LOS ANGELES", "LA", "CA", "TV")
+    conn.close()
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db", str(db_path), "search-api", "--query", "Prop 40",
+            "--campaign-year", "2026", "--ingest", "--format", "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert '"file_id": "f1"' in result.output
+    assert "loaded station file history" in result.output
+    client.get_file_history.assert_called_once_with(
+        "E001", "2026-01-01", "2026-12-31", count=100, offset=0
+    )
+    conn = get_connection(db_path)
+    station = queries.get_station(conn, "E001")
+    conn.close()
+    assert station["state"] == "CA"
+
+
+def test_explicit_gemini_requires_ready_runtime(runner, tmp_path):
+    with patch(
+        "fcc_ad_tracker.gemini_runtime.gemini_readiness",
+        return_value=(False, "google-genai is not installed; install fcc-ad-tracker[gemini]"),
+    ):
+        result = runner.invoke(
+            cli,
+            ["--db", str(tmp_path / "test.db"), "extract", "--use-gemini"],
+        )
+
+    assert result.exit_code != 0
+    assert "google-genai is not installed" in result.output
+
+
+@patch("fcc_ad_tracker.cli._make_client")
 def test_search_api_ingest_uses_richer_station_keys(mock_make_client, runner, tmp_path):
     from unittest.mock import MagicMock
     from fcc_ad_tracker.db.connection import get_connection
