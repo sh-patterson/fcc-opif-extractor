@@ -32,7 +32,7 @@ def test_full_pipeline(db, text_pdf, tmp_path):
     # 1. Discovery
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json={
             "status": "OK",
             "results": {

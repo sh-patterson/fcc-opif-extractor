@@ -49,13 +49,32 @@ def test_search_facilities():
     client = OpifClient(cfg)
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=load_fixture("facility_search_ca.json"),
         status=200,
     )
     result = client.search_facilities("CA")
     assert result["status"] == "OK"
     assert len(result["results"]["searchList"]) > 0
+
+
+@responses.activate
+def test_search_facilities_uses_current_fcc_route():
+    cfg = OpifConfig(rate_limit_delay=0.0, max_retries=0)
+    client = OpifClient(cfg)
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
+        json=load_fixture("facility_search_ca_current.json"),
+        status=200,
+    )
+
+    result = client.search_facilities("ca")
+
+    assert result["message"] == "4 Facilities Found"
+    assert responses.calls[0].request.url.endswith(
+        "/api/service/facility/search/CA?format=json"
+    )
 
 
 @responses.activate
@@ -154,7 +173,7 @@ def test_cache_hit_skips_http(tmp_path):
     client = OpifClient(cfg)
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=load_fixture("facility_search_ca.json"),
         status=200,
     )
@@ -174,7 +193,7 @@ def test_cache_miss_populates_file(tmp_path):
     client = OpifClient(cfg)
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=load_fixture("facility_search_ca.json"),
         status=200,
     )
@@ -190,9 +209,9 @@ def test_force_bypasses_cache(tmp_path):
     cfg = OpifConfig(rate_limit_delay=0.0, cache_dir=tmp_path)
     client = OpifClient(cfg)
     fixture = load_fixture("facility_search_ca.json")
-    responses.add(responses.GET, f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+    responses.add(responses.GET, f"{cfg.base_url}/api/service/facility/search/CA?format=json",
                   json=fixture, status=200)
-    responses.add(responses.GET, f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+    responses.add(responses.GET, f"{cfg.base_url}/api/service/facility/search/CA?format=json",
                   json=fixture, status=200)
     client.search_facilities("CA")
     client.search_facilities("CA", force=True)
@@ -205,9 +224,9 @@ def test_no_cache_when_cache_dir_none():
     cfg = OpifConfig(rate_limit_delay=0.0)
     client = OpifClient(cfg)
     fixture = load_fixture("facility_search_ca.json")
-    responses.add(responses.GET, f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+    responses.add(responses.GET, f"{cfg.base_url}/api/service/facility/search/CA?format=json",
                   json=fixture, status=200)
-    responses.add(responses.GET, f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+    responses.add(responses.GET, f"{cfg.base_url}/api/service/facility/search/CA?format=json",
                   json=fixture, status=200)
     client.search_facilities("CA")
     client.search_facilities("CA")

@@ -217,23 +217,26 @@ class OpifClient:
         raise RuntimeError(f"Failed to download after retries: {url}")
 
     def search_facilities(self, state: str, *, force: bool = False) -> dict:
-        url = f"/api/service/tv/facility/search/{state}.json"
+        state = state.strip().upper()
+        url = f"/api/service/facility/search/{state}"
+        params = {"format": "json"}
         if self._cache and not force:
-            key = FileCache.make_key("facilities", url)
+            key = FileCache.make_key("facilities", url, params)
             cached = self._cache.get("facilities", key)
             if cached is not None:
                 if self._scratchpad:
                     self._scratchpad.log(
                         "api_call", method="GET",
                         url=f"{self.config.base_url}{url}",
+                        params=params,
                         cache_hit=True,
                     )
                 return cached
-        resp = self._request("GET", url)
+        resp = self._request("GET", url, params=params)
         resp.raise_for_status()
         data = resp.json()
         if self._cache:
-            key = FileCache.make_key("facilities", url)
+            key = FileCache.make_key("facilities", url, params)
             self._cache.set("facilities", key, data, ttl_seconds=self._CACHE_TTL_24H)
         return data
 

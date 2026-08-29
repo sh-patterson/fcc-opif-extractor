@@ -24,10 +24,11 @@ class Station:
     city: str
     state: str
     service_type: str
+    facility_type: str = ""
 
     @classmethod
     def from_facility(cls, facility: dict) -> "Station":
-        community = facility.get("community", {})
+        community = facility.get("community") or {}
         return cls(
             entity_id=str(facility["id"]),
             call_sign=facility["callSign"],
@@ -35,14 +36,18 @@ class Station:
             city=community.get("city", facility.get("communityCity", "")),
             state=community.get("state", facility.get("communityState", "")),
             service_type=facility.get("service", facility.get("serviceType", "")),
+            facility_type=facility.get("facilityType", ""),
         )
 
     @property
     def is_full_power(self) -> bool:
         svc = self.service_type.lower()
+        if "low power" in svc:
+            return False
         return (
             ("full" in svc and ("service" in svc or "power" in svc))
             or ("class" in svc and "a" in svc)
+            or self.facility_type.upper() in {"CDT", "EDT"}
         )
 
 
@@ -52,8 +57,14 @@ def _extract_facilities(data: dict) -> list[dict]:
     The API returns searchList with searchType categories, each containing
     a facilityList. We flatten all facilityList entries.
     """
+    results = data.get("results", {})
+    global_results = results.get("globalSearchResults", {})
+    current_facilities = global_results.get("tvFacilityList")
+    if isinstance(current_facilities, list):
+        return current_facilities
+
     facilities = []
-    search_list = data.get("results", {}).get("searchList", [])
+    search_list = results.get("searchList", [])
     for entry in search_list:
         facilities.extend(entry.get("facilityList", []))
     return facilities
@@ -68,11 +79,14 @@ def discover_stations(
     data = client.search_facilities(state)
     facilities = _extract_facilities(data)
     stations = [Station.from_facility(f) for f in facilities]
+    requested_state = state.strip().casefold()
+    stations = [s for s in stations if s.state.casefold() == requested_state]
 
     if full_power_only:
         stations = [s for s in stations if s.is_full_power]
     if target_dmas:
-        stations = [s for s in stations if s.market in target_dmas]
+        normalized_dmas = {dma.casefold() for dma in target_dmas}
+        stations = [s for s in stations if s.market.casefold() in normalized_dmas]
 
     logger.info(
         "Discovered %d stations in %s (filtered from %d facilities)",

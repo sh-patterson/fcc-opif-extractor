@@ -56,13 +56,30 @@ def test_station_class_a_included():
 
 
 @responses.activate
+def test_discover_stations_handles_current_facility_search_response():
+    cfg = OpifConfig(rate_limit_delay=0.0, max_retries=0)
+    client = OpifClient(cfg)
+    fixture = json.loads((FIXTURES / "facility_search_ca_current.json").read_text())
+    responses.add(
+        responses.GET,
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
+        json=fixture,
+        status=200,
+    )
+
+    stations = discover_stations(client, state="ca", target_dmas=["LOS ANGELES"])
+
+    assert [station.call_sign for station in stations] == ["KABC-TV", "KAXT-CD"]
+
+
+@responses.activate
 def test_discover_stations_filters_by_dma():
     cfg = OpifConfig(rate_limit_delay=0.0)
     client = OpifClient(cfg)
     fixture = json.loads((FIXTURES / "facility_search_ca.json").read_text())
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=fixture,
         status=200,
     )
@@ -84,7 +101,7 @@ def test_discover_stations_full_power_only():
     fixture = json.loads((FIXTURES / "facility_search_ca.json").read_text())
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=fixture,
         status=200,
     )
@@ -121,13 +138,13 @@ def test_discover_stations_by_dmas_across_states():
     }
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/CA.json",
+        f"{cfg.base_url}/api/service/facility/search/CA?format=json",
         json=ca_fixture,
         status=200,
     )
     responses.add(
         responses.GET,
-        f"{cfg.base_url}/api/service/tv/facility/search/NV.json",
+        f"{cfg.base_url}/api/service/facility/search/NV?format=json",
         json=nv_fixture,
         status=200,
     )

@@ -8,7 +8,7 @@
 ## 1. API Endpoint Coverage
 
 **Endpoints we use (5):**
-- `GET /api/service/tv/facility/search/{state}.json` — Facility search by state
+- `GET /api/service/facility/search/{state}?format=json` — Facility keyword search, filtered to the exact state by the client
 - `GET /api/manager/folder/parentFolders.json` — Get top-level folders for an entity
 - `GET /api/manager/folder/id/{folderId}.json` — Get folder contents
 - `GET /api/manager/file/history.json` — File history with date range
