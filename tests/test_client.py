@@ -81,7 +81,7 @@ def test_search_facilities_uses_current_fcc_route():
 def test_get_download_url():
     cfg = OpifConfig(rate_limit_delay=0.0)
     client = OpifClient(cfg)
-    url = client.get_download_url("folder-abc", "file-123")
+    url = client.get_download_url(folder_id="folder-abc", file_manager_id="file-123")
     assert url == "https://files.fcc.gov/download/file-123.pdf"
 
 
